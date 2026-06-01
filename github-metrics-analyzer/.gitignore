@@ -15,7 +15,6 @@ venv/
 *.secret
 secrets.json
 
-# Arquivos acima do limite de 100 MB do GitHub - manter apenas localmente
-data/complexity.csv
-metrics.db
+# Arquivos grandes (>100 MB) versionados via Git LFS:
+#   data/complexity.csv, metrics.db  -> ver .gitattributes
 
