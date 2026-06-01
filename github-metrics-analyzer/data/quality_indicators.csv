@@ -1,0 +1,13 @@
+repository,stars,forks,total_commits,active_days,contributors,top5_commit_share_pct,concentration_risk,total_loc,avg_ccn,max_ccn,avg_method_nloc,avg_method_params,classes,interfaces,methods,inheritance_links,test_methods,testability,pr_open,pr_closed,avg_commits_per_pr,avg_pr_close_hours,activity_score
+NationalSecurityAgency/ghidra,69046,7591,17554,1986,445,59.51,low,2046111,2.01,383,9.59,0.98,0,0,0,0,18295,0.0,133,167,2.27,791.52,27784
+TheAlgorithms/Java,65751,21171,3204,1284,822,29.08,low,85507,1.83,29,7.67,0.63,0,0,0,0,3930,0.0,20,280,3.87,200.41,9924
+alibaba_nacos,0,0,0,0,0,0.0,low,383591,1.46,57,8.54,0.69,0,0,0,0,11712,0.0,0,0,0.0,0.0,0
+apache_cassandra,0,0,0,0,0,0.0,low,989367,1.92,158,10.18,1.07,0,0,0,0,10679,0.0,0,0,0.0,0.0,0
+doocs/advanced-java,78987,19214,785,441,56,84.41,high,5,1.0,1,3.0,1.0,0,0,0,0,0,0.0,0,142,1.84,59.97,3132
+elastic/elasticsearch,76776,25949,100700,5395,3007,14.55,low,3372487,1.88,296,11.08,1.01,0,0,0,0,179,0.0,125,175,3.77,16.06,127975
+iluwatar/java-design-patterns,94077,27367,4364,1122,548,53.5,low,50632,1.34,14,7.02,0.52,0,0,0,0,1285,0.0,86,214,3.21,1192.71,10274
+krahets/hello-algo,126492,15110,0,0,0,0.0,low,0,0.0,0,0.0,0.0,0,0,0,0,0,0.0,0,0,0.0,0.0,0
+macrozheng/mall,83750,29704,0,0,0,0.0,low,0,0.0,0,0.0,0.0,0,0,0,0,0,0.0,0,0,0.0,0.0,0
+spring-projects/spring-boot,80730,41933,61387,3689,1676,50.89,low,50383,1.41,24,6.97,0.78,0,0,0,0,1025,0.0,20,280,1.39,71.99,80132
+spring-projects/spring-framework,60007,38826,35064,4899,1374,42.58,low,854571,1.55,532,7.09,0.74,0,0,0,0,23600,0.0,63,237,2.95,116.45,59859
+termux/termux-app,55773,6690,1504,490,101,85.71,high,26896,2.97,112,9.86,1.28,0,0,0,0,3,0.0,49,251,3.47,641.16,4254

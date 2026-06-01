@@ -1,0 +1,21 @@
+repos/
+repos/alibaba_nacos
+repos/apache_cassandra
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets - never commit tokens/credentials
+.env
+.env.*
+!.env.example
+*.token
+*.secret
+secrets.json
+
+# Arquivos acima do limite de 100 MB do GitHub - manter apenas localmente
+data/complexity.csv
+metrics.db
+

@@ -1,0 +1,11 @@
+repository,test_files,test_methods,main_loc,test_loc,test_to_main_ratio,frameworks
+alibaba_nacos,1829,11712,269797,246069,0.9121,junit;mockito
+apache_cassandra,2137,10679,780536,423544,0.5426,assertj;junit;mockito
+doocs/advanced-java,0,0,8,0,0.0,
+elastic/elasticsearch,7089,179,2456809,1441026,0.5865,junit;mockito
+iluwatar/java-design-patterns,603,1285,72837,37359,0.5129,junit;mockito
+NationalSecurityAgency/ghidra,1901,18295,2124769,632679,0.2978,junit
+spring-projects/spring-boot,263,1025,43075,26573,0.6169,assertj;junit;mockito
+spring-projects/spring-framework,3503,23600,755102,518687,0.6869,assertj;junit;mockito;testng
+termux/termux-app,23,3,34600,2928,0.0846,junit
+TheAlgorithms/Java,750,3930,71472,45404,0.6353,assertj;junit;mockito

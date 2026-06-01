@@ -1,0 +1,10 @@
+iluwatar/java-design-patterns
+spring-projects/spring-boot
+doocs/advanced-java
+elastic/elasticsearch
+NationalSecurityAgency/ghidra
+alibaba/nacos
+apache/cassandra
+TheAlgorithms/Java
+spring-projects/spring-framework
+termux/termux-app

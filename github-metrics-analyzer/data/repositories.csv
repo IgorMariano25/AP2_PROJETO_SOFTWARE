@@ -1,0 +1,11 @@
+full_name,url,stars,forks,open_issues,language,license,pushed_at,archived,description
+krahets/hello-algo,https://github.com/krahets/hello-algo,126492,15110,37,Java,NOASSERTION,2026-04-18T18:23:33Z,False,"《Hello 算法》：动画图解、一键运行的数据结构与算法教程。支持简中、繁中、English、日本語，提供 Python, Java, C++, C, C#, JS, Go, Swift, Rust, Ruby, Kotlin, TS, Dart 等代码实现"
+iluwatar/java-design-patterns,https://github.com/iluwatar/java-design-patterns,94079,27367,225,Java,NOASSERTION,2026-05-31T15:18:12Z,False,Design patterns implemented in Java
+macrozheng/mall,https://github.com/macrozheng/mall,83749,29704,15,Java,Apache-2.0,2026-05-14T08:32:05Z,False,mall项目是一套电商系统，包括前台商城系统及后台管理系统，基于Spring Boot+MyBatis实现，采用Docker容器化部署。 前台商城系统包含首页门户、商品推荐、商品搜索、商品展示、购物车、订单流程、会员中心、客户服务、帮助中心等模块。 后台管理系统包含商品管理、订单管理、会员管理、促销管理、运营管理、内容管理、统计报表、财务管理、权限管理、设置等模块。
+spring-projects/spring-boot,https://github.com/spring-projects/spring-boot,80729,41933,546,Java,Apache-2.0,2026-05-31T18:21:37Z,False,"Spring Boot helps you to create Spring-powered, production-grade applications and services with absolute minimum fuss."
+doocs/advanced-java,https://github.com/doocs/advanced-java,78986,19214,0,Java,CC-BY-SA-4.0,2026-05-03T00:58:42Z,False,😮 Core Interview Questions & Answers For Experienced Java(Backend) Developers | 互联网 Java 工程师进阶知识完全扫盲：涵盖高并发、分布式、高可用、微服务、海量数据处理等领域知识
+elastic/elasticsearch,https://github.com/elastic/elasticsearch,76778,25950,5808,Java,NOASSERTION,2026-05-31T20:42:09Z,False,"Free and Open Source, Distributed, RESTful Search Engine"
+NationalSecurityAgency/ghidra,https://github.com/NationalSecurityAgency/ghidra,69050,7592,1904,Java,Apache-2.0,2026-05-29T15:28:39Z,False,Ghidra is a software reverse engineering (SRE) framework
+TheAlgorithms/Java,https://github.com/TheAlgorithms/Java,65754,21172,24,Java,MIT,2026-05-31T20:21:29Z,False,All Algorithms implemented in Java
+spring-projects/spring-framework,https://github.com/spring-projects/spring-framework,60006,38827,435,Java,Apache-2.0,2026-05-29T11:42:13Z,False,Spring Framework
+termux/termux-app,https://github.com/termux/termux-app,55778,6692,547,Java,NOASSERTION,2026-05-12T21:58:21Z,False,Termux - a terminal emulator application for Android OS extendible by variety of packages.
