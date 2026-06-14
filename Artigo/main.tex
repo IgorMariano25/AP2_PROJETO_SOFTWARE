@@ -137,8 +137,9 @@ adotar uma abordagem 100\% estática (sem \textit{build}).
 
 \subsection{Seleção dos repositórios}
 Selecionaram-se 10 repositórios Java da organização
-\textit{NationalSecurityAgency} (Tabela~\ref{tab:repos}), priorizando sistemas
-substanciais e descartando módulos triviais. \textbf{Transparência:} quatro
+\textit{NationalSecurityAgency}~\cite{nsa_ghidra,nsa_datawave,nsa_emissary,nsa_timely,nsa_fractalrabbit,nsa_lemongrenade,nsa_dwquery,nsa_dwaudit,nsa_dwauthz,nsa_ranklinkage}
+(Tabela~\ref{tab:repos}), priorizando sistemas substanciais e descartando
+módulos triviais. \textbf{Transparência:} quatro
 repositórios (\texttt{datawave}, \texttt{datawave-query-service},
 \texttt{datawave-audit-service}, \texttt{datawave-authorization-service})
 pertencem ao mesmo ecossistema \emph{DataWave}, o que constitui variável de
@@ -153,13 +154,14 @@ Adotou-se uma ferramenta canônica por dimensão, evitando dupla contagem
 (Tabela~\ref{tab:stack}):
 \begin{itemize}
   \item \textbf{Alvo (SAST):} a \emph{união} de dois analisadores ---
-  Semgrep (\texttt{--config auto}) e CodeQL (\texttt{--build-mode=none}, suíte
-  \texttt{java-security-extended}). Cada arquivo \texttt{.java} recebe
+  Semgrep (\texttt{--config auto}) e CodeQL~\cite{codeql}
+  (\texttt{--build-mode=none}, suíte \texttt{java-security-extended}). Cada arquivo \texttt{.java} recebe
   \texttt{has\_security\_risk}~$=1$ se \emph{qualquer} das duas ferramentas o
   sinaliza ($\geq 1$ achado). A união maximiza \textit{recall} --- em segurança,
   o falso-negativo é o pior erro;
   \item \textbf{\textit{Features} estruturais e de qualidade:} complexidade e
-  estrutura via \textbf{SonarQube} (fonte canônica, modo \textit{source-only});
+  estrutura via \textbf{SonarQube}~\cite{sonarqube} (fonte canônica, modo
+  \textit{source-only});
   métricas CK (WMC, DIT, CBO, RFC, LCOM) e métricas de processo (PyDriller);
   \item \textbf{Descritivo:} OSV (SCA de dependências) e segredos pela união de
   Gitleaks e detect-secrets (deduplicada por arquivo/linha/tipo).
