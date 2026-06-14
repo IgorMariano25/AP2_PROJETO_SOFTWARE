@@ -1,10 +1,11 @@
 <#
 .SYNOPSIS
-  Instala/migra as ferramentas externas pesadas do estudo para E:\developer-tools.
+  Instala/migra as ferramentas externas pesadas do estudo para a pasta
+  developer-tools/ dentro do projeto.
 
 .DESCRIPTION
-  Regra do projeto (prompt §5-A): binários pesados e reutilizáveis entre projetos
-  NÃO ficam no repositório nem no venv — vão para E:\developer-tools, um por
+  Regra do projeto (prompt §5-A): binários pesados NÃO ficam versionados no Git
+  nem no venv — vão para a pasta developer-tools/ do projeto (gitignored), um por
   subpasta. Dependências Python continuam no venv/requirements.txt; runtimes do
   SO (Java, Git, Docker) permanecem instalados pelo sistema.
 
@@ -15,8 +16,8 @@
     - codeql        CodeQL CLI + query packs (bundle do github/codeql-action)
 
   Os coletores Python resolvem cada ferramenta via common.find_external_tool
-  (env → PATH → E:\developer-tools\<sub>), então nenhuma alteração de PATH global
-  é necessária. Use -DevTools para outro destino (ou defina $env:DEVELOPER_TOOLS).
+  (env → PATH → <projeto>\developer-tools\<sub>), então nenhuma alteração de PATH
+  global é necessária. Use -DevTools para outro destino (ou $env:DEVELOPER_TOOLS).
 
 .EXAMPLE
   pwsh -File scripts/setup_dev_tools.ps1
@@ -24,7 +25,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$DevTools = $(if ($env:DEVELOPER_TOOLS) { $env:DEVELOPER_TOOLS } else { 'E:\developer-tools' }),
+    [string]$DevTools = $(if ($env:DEVELOPER_TOOLS) { $env:DEVELOPER_TOOLS } else { Join-Path (Split-Path -Parent $PSScriptRoot) 'developer-tools' }),
     [switch]$SkipCodeQL,
     [switch]$PullSonarQubeImage
 )

@@ -157,11 +157,12 @@ def command_exists(name: str) -> bool:
 # External heavy tools (not pip-installable, kept outside the repo)
 # --------------------------------------------------------------------------- #
 # Per the study prompt (§5-A), heavy binaries (CodeQL CLI, SonarScanner,
-# Gitleaks) live in E:\developer-tools (overridable via DEVELOPER_TOOLS env),
-# not versioned in Git. We resolve a tool by: explicit env override → PATH →
-# a subfolder of the developer-tools root. Returns the absolute path string or
-# None so collectors can skip gracefully when a tool is absent.
-DEVELOPER_TOOLS = Path(os.getenv("DEVELOPER_TOOLS", r"E:\developer-tools"))
+# Gitleaks) live in the project-local ``developer-tools/`` folder (gitignored,
+# overridable via the DEVELOPER_TOOLS env var), not versioned in Git. We resolve
+# a tool by: explicit env override → PATH → a subfolder of the developer-tools
+# root. Returns the absolute path string or None so collectors can skip
+# gracefully when a tool is absent.
+DEVELOPER_TOOLS = Path(os.getenv("DEVELOPER_TOOLS", str(ROOT / "developer-tools")))
 
 
 def find_external_tool(env_var: str, exe_names: Iterable[str],

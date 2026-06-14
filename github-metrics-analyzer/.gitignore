@@ -8,6 +8,10 @@ venv/
 # Tool downloads and temp (CK JAR, redirected TEMP, CK output)
 tools/
 .tmp/
+
+# Heavy external binaries (CK, CodeQL bundle ~1GB, SonarScanner, Gitleaks).
+# Installed by scripts/setup_dev_tools.ps1; never versioned (study §5-A).
+developer-tools/
 data/pilot_semgrep.json
 
 # Estado intermediário/retomável das coletas (consolidado depois em data/*.csv)

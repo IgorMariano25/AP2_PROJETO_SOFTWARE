@@ -86,12 +86,12 @@ winget install AlDanial.Cloc     # Windows
 
 #### Ferramentas pesadas (CK, SonarScanner, CodeQL, Gitleaks)
 
-Binários pesados **não versionados** no Git, instalados em
-`E:\developer-tools\<ferramenta>` (uma por subpasta). Os coletores os resolvem
-automaticamente (env → `PATH` → `E:\developer-tools`), sem mexer no `PATH`
-global. **Se uma ferramenta faltar, a fase grava saída vazia e o pipeline
+Binários pesados **não versionados** no Git (gitignorados), instalados na pasta
+`developer-tools/<ferramenta>` dentro do projeto (uma por subpasta). Os coletores
+os resolvem automaticamente (env → `PATH` → `developer-tools/`), sem mexer no
+`PATH` global. **Se uma ferramenta faltar, a fase grava saída vazia e o pipeline
 degrada com elegância** (lizard no lugar do SonarQube; alvo só com Semgrep; só
-detect-secrets).
+detect-secrets). Para outro destino, defina `$env:DEVELOPER_TOOLS`.
 
 **Forma recomendada — instalador idempotente** (migra o CK e baixa o resto):
 

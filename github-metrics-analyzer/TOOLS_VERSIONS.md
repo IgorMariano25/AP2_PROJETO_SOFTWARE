@@ -40,18 +40,19 @@ Ferramentas externas pesadas não são versionadas no Git; as versões ficam aqu
 
 ## Ferramentas externas (fora do Git)
 
-Instaladas em `E:\developer-tools` (uma por subpasta) pelo instalador
-idempotente `scripts/setup_dev_tools.ps1`. Não versionadas no Git; runtimes do
-SO (Java/Git/Docker) e o `venv` Python ficam fora desta tabela.
+Instaladas na pasta `developer-tools/` dentro do projeto (uma por subpasta,
+gitignored) pelo instalador idempotente `scripts/setup_dev_tools.ps1`. Não
+versionadas no Git; runtimes do SO (Java/Git/Docker) e o `venv` Python ficam
+fora desta tabela.
 
 | Ferramenta | Versão | Local / origem | Observação |
 |---|---|---|---|
-| CK (Maurício Aniche) | 0.7.0 | `E:\developer-tools\ck\ck.jar` (Maven Central, fat-jar) | migrado de `tools/ck.jar`; standalone, sem build |
+| CK (Maurício Aniche) | 0.7.0 | `developer-tools/ck/ck.jar` (Maven Central, fat-jar) | migrado de `tools/ck.jar`; standalone, sem build |
 | OSV | API `https://api.osv.dev/v1/query` (sem binário) | api.osv.dev | consultada via Python (`collect_osv_metrics.py`) |
-| Gitleaks | 8.30.1 | `E:\developer-tools\gitleaks\gitleaks.exe` (release GitHub) | scan do estado atual (`gitleaks dir`) |
-| SonarScanner CLI | 6.2.1.4610 | `E:\developer-tools\sonar-scanner\bin\sonar-scanner.bat` | `-Dsonar.java.binaries=<fontes>` (sem bytecode) |
-| CodeQL (bundle) | 2.25.6 (`codeql-bundle-v2.25.6`) | `E:\developer-tools\codeql\codeql.exe` (github/codeql-action) | inclui query packs; `--build-mode=none`; suíte `java-security-extended` |
-| SonarQube (servidor) | _preencher (ex.: 10.x community)_ | imagem Docker `sonarqube:community` | métricas estruturais (source-only); **registrar o modo MQR/Clean Code** |
+| Gitleaks | 8.30.1 | `developer-tools/gitleaks/gitleaks.exe` (release GitHub) | scan do estado atual (`gitleaks dir`) |
+| SonarScanner CLI | 6.2.1.4610 | `developer-tools/sonar-scanner/bin/sonar-scanner.bat` | `-Dsonar.java.binaries=<fontes>` (sem bytecode) |
+| CodeQL (bundle) | 2.25.6 (`codeql-bundle-v2.25.6`) | `developer-tools/codeql/codeql.exe` (github/codeql-action) | inclui query packs; `--build-mode=none`; suíte `java-security-extended` |
+| SonarQube (servidor) | 26.6.0.123539 (Community Build) | imagem Docker `sonarqube:community` | métricas estruturais (source-only); modo MQR/Clean Code (padrão na 26.x); **exige User Token** (não Global Analysis Token) para leitura via Web API |
 
 > **Servidor SonarQube** não fica em pasta: roda via Docker
 > (`docker run -d -p 9000:9000 sonarqube:community`, ou
