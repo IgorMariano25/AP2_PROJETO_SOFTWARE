@@ -3,8 +3,10 @@
 CK computes class-level metrics: WMC, DIT, NOC, CBO, RFC, LCOM, etc.
 It parses Java *source* — no bytecode required.
 
-The CK JAR is downloaded automatically on first run to:
-  github-metrics-analyzer/tools/ck.jar
+The CK JAR is a heavy external tool kept outside the repo (study §5-A). It is
+resolved as: E:\\developer-tools\\ck\\ck.jar (canonical) → the legacy in-repo
+tools/ck.jar (migrated by scripts/setup_dev_tools.ps1) → download to the
+canonical location on first run.
 
 CK command (see https://github.com/mauricioaniche/ck):
   java -jar ck.jar <src_dir> <use_jars:false> <max_files:0>
@@ -29,12 +31,31 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from common import DATA_DIR, ROOT, folder_to_repo, get_logger, iter_repo_dirs
+from common import (DATA_DIR, DEVELOPER_TOOLS, ROOT, folder_to_repo,
+                    get_logger, iter_repo_dirs)
 
 log = get_logger("ck")
 
+# Canonical location for the heavy external tool (study §5-A); the in-repo
+# tools/ck.jar is a legacy fallback migrated by scripts/setup_dev_tools.ps1.
+CK_DIR = DEVELOPER_TOOLS / "ck"
+LEGACY_CK_JAR = ROOT / "tools" / "ck.jar"
+# Output scratch (CK class/method CSVs) stays project-local and gitignored.
 TOOLS_DIR = ROOT / "tools"
-CK_JAR = TOOLS_DIR / "ck.jar"
+
+
+def _resolve_ck_jar() -> Path:
+    """Prefer the developer-tools jar, then the legacy in-repo jar, else the
+    canonical path (used as the download target when neither exists yet)."""
+    canonical = CK_DIR / "ck.jar"
+    if canonical.exists():
+        return canonical
+    if LEGACY_CK_JAR.exists():
+        return LEGACY_CK_JAR
+    return canonical
+
+
+CK_JAR = _resolve_ck_jar()
 
 # CK is not published as a GitHub release asset; its runnable "fat" jar
 # (jar-with-dependencies) is hosted on Maven Central. 0.7.0 is the latest
@@ -56,11 +77,14 @@ FIELDS = [
 
 
 def ensure_ck_jar() -> bool:
-    """Download CK JAR if not present. Returns True if available."""
-    TOOLS_DIR.mkdir(parents=True, exist_ok=True)
+    """Ensure the CK JAR is available; download to E:\\developer-tools on first
+    run. Returns True if available. (Prefer scripts/setup_dev_tools.ps1.)"""
+    global CK_JAR
+    CK_JAR = _resolve_ck_jar()
     if CK_JAR.exists():
         return True
 
+    CK_DIR.mkdir(parents=True, exist_ok=True)
     log.info("Downloading CK JAR from %s ...", CK_DOWNLOAD_URL)
     try:
         import requests

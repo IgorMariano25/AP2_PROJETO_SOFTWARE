@@ -84,27 +84,33 @@ winget install AlDanial.Cloc     # Windows
 # Git e JDK 17+ devem estar no PATH (JDK necessário para o CK)
 ```
 
-#### Ferramentas pesadas (SonarQube, CodeQL, Gitleaks)
+#### Ferramentas pesadas (CK, SonarScanner, CodeQL, Gitleaks)
 
-Binários pesados **não versionados** no Git. Por padrão os scripts os procuram
-no `PATH` e em `E:\developer-tools\<ferramenta>`; ou aponte caminhos explícitos
-no `.env` (`CODEQL_CLI`, `SONARSCANNER_CLI`, `GITLEAKS_CLI`, `DEVELOPER_TOOLS`).
-**Se uma ferramenta faltar, a fase grava saída vazia e o pipeline degrada com
-elegância** (lizard no lugar do SonarQube; alvo só com Semgrep; só detect-secrets).
+Binários pesados **não versionados** no Git, instalados em
+`E:\developer-tools\<ferramenta>` (uma por subpasta). Os coletores os resolvem
+automaticamente (env → `PATH` → `E:\developer-tools`), sem mexer no `PATH`
+global. **Se uma ferramenta faltar, a fase grava saída vazia e o pipeline
+degrada com elegância** (lizard no lugar do SonarQube; alvo só com Semgrep; só
+detect-secrets).
+
+**Forma recomendada — instalador idempotente** (migra o CK e baixa o resto):
 
 ```powershell
-# Gitleaks (segredos)
-winget install gitleaks                       # ou scoop install gitleaks
+pwsh -File scripts/setup_dev_tools.ps1                  # CK, gitleaks, sonar-scanner, codeql
+pwsh -File scripts/setup_dev_tools.ps1 -PullSonarQubeImage   # + imagem Docker do servidor
+# -DevTools D:\tools  → outro destino   |   -SkipCodeQL  → pula o bundle (~1 GB)
+```
 
-# CodeQL CLI (SAST #2) — baixe o bundle e extraia para E:\developer-tools\codeql
-#   https://github.com/github/codeql-cli-binaries/releases
-#   (inclui as query packs java-security-extended)
+Para outro destino, defina `$env:DEVELOPER_TOOLS` (lido por `common.py`) ou
+aponte caminhos explícitos no `.env` (`CODEQL_CLI`, `SONARSCANNER_CLI`,
+`GITLEAKS_CLI`, `DEVELOPER_TOOLS`).
 
-# SonarQube (métricas estruturais canônicas) — servidor + scanner
+**Servidor SonarQube** (métricas estruturais) roda via Docker — não fica em pasta:
+
+```powershell
 docker run -d --name sonarqube -p 9000:9000 sonarqube:community
-#   acesse http://localhost:9000 (admin/admin), troque a senha, gere um token e
+#   http://localhost:9000 (admin/admin) → troque a senha, gere um token e
 #   preencha SONAR_HOST_URL / SONAR_TOKEN no .env
-#   SonarScanner CLI → E:\developer-tools\sonar-scanner  (ou npm i -g sonarqube-scanner)
 ```
 
 > **Princípio sem build:** o SonarScanner roda em modo source-only

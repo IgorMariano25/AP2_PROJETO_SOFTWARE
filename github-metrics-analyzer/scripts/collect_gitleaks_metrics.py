@@ -36,7 +36,7 @@ FINDING_FIELDS = ["repository", "file", "secret_type", "line_number", "detected_
 SUMMARY_FIELDS = ["repository", "files_with_secrets", "total_secrets",
                   "by_gitleaks", "by_detect_secrets", "by_both", "types"]
 
-_GITLEAKS = find_external_tool("GITLEAKS_CLI", ("gitleaks", "gitleaks.exe"),
+_GITLEAKS = find_external_tool("GITLEAKS_CLI", ("gitleaks.exe", "gitleaks"),
                                subdirs=("gitleaks",))
 _DS_CMD = Path(sys.executable).parent / "detect-secrets"
 if not _DS_CMD.exists():

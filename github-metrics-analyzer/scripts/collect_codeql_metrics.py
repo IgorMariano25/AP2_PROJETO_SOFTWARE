@@ -44,7 +44,9 @@ FIELDS = ["repository", "file", "rule_id", "severity", "cwe", "message"]
 # the worst error in this study (see ML §8.4).
 SUITE = os.getenv("CODEQL_SUITE", "java-security-extended.qls")
 
-_CODEQL = find_external_tool("CODEQL_CLI", ("codeql", "codeql.exe"),
+# .exe first: the bundle ships both codeql.exe (Windows) and a `codeql` shell
+# wrapper; subprocess on Windows must invoke the .exe.
+_CODEQL = find_external_tool("CODEQL_CLI", ("codeql.exe", "codeql"),
                              subdirs=("codeql",))
 
 

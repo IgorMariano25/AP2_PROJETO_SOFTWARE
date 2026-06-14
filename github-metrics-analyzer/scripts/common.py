@@ -176,7 +176,7 @@ def find_external_tool(env_var: str, exe_names: Iterable[str],
     from shutil import which
 
     override = os.getenv(env_var)
-    if override and Path(override).exists():
+    if override and Path(override).is_file():
         return override
 
     for exe in exe_names:
@@ -184,11 +184,14 @@ def find_external_tool(env_var: str, exe_names: Iterable[str],
         if hit:
             return hit
 
+    # Note: must match a FILE, not just an existing path — otherwise a tool
+    # SUBFOLDER named like the exe (e.g. E:\developer-tools\gitleaks) would be
+    # returned instead of the binary inside it.
     roots = [DEVELOPER_TOOLS, *(DEVELOPER_TOOLS / s for s in subdirs)]
     for root in roots:
         for exe in exe_names:
             for cand in (root / exe, root / "bin" / exe):
-                if cand.exists():
+                if cand.is_file():
                     return str(cand)
     return None
 
