@@ -1,21 +1,21 @@
 # Relatório comparativo — Postura de segurança (ISO/IEC 25010)
 Estudo estático (apenas clone, sem build) de 10 repositórios Java da organização `NationalSecurityAgency`. Valores **brutos e normalizados por KLOC**. Métrica não coletável aparece como ausente/zero — nunca estimada.
 
-**Unidade de análise:** arquivo `.java`. **Total:** 29662 arquivos; **156 com risco de segurança** (0.53%).
+**Unidade de análise:** arquivo `.java`. **Total:** 31388 arquivos; **560 com risco de segurança** (1.78%).
 
 ## 1. Postura por repositório (bruto + por KLOC)
 | repositório | arquivos_java | KLOC_java | achados_seg | achados_por_KLOC | arquivos_em_risco | pct_risco | CVEs_diretos | CVSS_médio | segredos |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ghidra | 15589 | 2046.2 | 275 | 0.13 | 49 | 0.22 | 0 | 0.0 | 0 |
-| datawave | 4302 | 565.9 | 173 | 0.31 | 85 | 1.56 | 30 | 0.0 | 191 |
-| timely | 359 | 31.1 | 20 | 0.64 | 8 | 1.1 | 1 | 0.0 | 16 |
-| emissary | 676 | 67.4 | 12 | 0.18 | 11 | 1.42 | 0 | 0.0 | 33 |
-| lemongrenade | 110 | 13.9 | 5 | 0.36 | 2 | 1.59 | 9 | 0.0 | 1 |
-| datawave-query-service | 54 | 14.0 | 5 | 0.36 | 1 | 1.85 | 0 | 0.0 | 2 |
-| rank-based-linkage | 34 | 1.6 | 3 | 1.82 | 0 | 0.0 | 0 | 0.0 | 0 |
-| fractalrabbit | 31 | 1.1 | 3 | 2.72 | 0 | 0.0 | 0 | 0.0 | 0 |
-| datawave-audit-service | 48 | 7.7 | 1 | 0.13 | 0 | 0.0 | 0 | 0.0 | 3 |
-| datawave-authorization-service | 51 | 3.5 | 1 | 0.29 | 0 | 0.0 | 0 | 0.0 | 5 |
+| ghidra | 15589 | 2046.2 | 275 | 0.13 | 253 | 1.09 | 0 | 0.0 | 288 |
+| datawave | 4302 | 565.9 | 173 | 0.31 | 221 | 3.74 | 30 | 0.0 | 199 |
+| timely | 359 | 31.1 | 20 | 0.64 | 19 | 2.42 | 1 | 0.0 | 28 |
+| emissary | 676 | 67.4 | 12 | 0.18 | 45 | 5.57 | 0 | 0.0 | 32 |
+| lemongrenade | 110 | 13.9 | 5 | 0.36 | 3 | 1.79 | 9 | 0.0 | 1 |
+| datawave-query-service | 54 | 14.0 | 5 | 0.36 | 6 | 8.82 | 0 | 0.0 | 2 |
+| rank-based-linkage | 34 | 1.6 | 3 | 1.82 | 1 | 0.53 | 0 | 0.0 | 0 |
+| fractalrabbit | 31 | 1.1 | 3 | 2.72 | 2 | 1.19 | 0 | 0.0 | 0 |
+| datawave-audit-service | 48 | 7.7 | 1 | 0.13 | 4 | 5.88 | 0 | 0.0 | 5 |
+| datawave-authorization-service | 51 | 3.5 | 1 | 0.29 | 6 | 8.45 | 0 | 0.0 | 8 |
 
 > Três repositórios (`datawave`, `datawave-query-service`, `datawave-audit-service`, `datawave-authorization-service`) pertencem ao ecossistema **DataWave** — variável de confusão / limitação de validade externa (Seção de limitações).
 
@@ -67,11 +67,11 @@ Estudo estático (apenas clone, sem build) de 10 repositórios Java da organiza�
 ## 5. Predição por ML (GroupKFold por repositório)
 | model | precision | recall | f1 | roc_auc | tp | fp | fn | tn |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| LogisticRegression | 0.0316 | 0.6264 | 0.0597 | 0.7903 | 17.4 | 1053.0 | 13.8 | 4848.2 |
-| DecisionTree | 0.0551 | 0.2985 | 0.0902 | 0.6996 | 9.8 | 359.8 | 21.4 | 5541.4 |
-| RandomForest | 0.0047 | 0.0082 | 0.0059 | 0.8227 | 0.4 | 17.4 | 30.8 | 5883.8 |
-| XGBoost | 0.0 | 0.0 | 0.0 | 0.7839 | 0.0 | 16.8 | 31.2 | 5884.4 |
-| LightGBM | 0.0034 | 0.0041 | 0.0037 | 0.795 | 0.2 | 12.2 | 31.0 | 5889.0 |
+| LogisticRegression | 0.1054 | 0.6212 | 0.1745 | 0.773 | 72.8 | 1226.2 | 39.2 | 4939.4 |
+| DecisionTree | 0.1078 | 0.3389 | 0.1538 | 0.7309 | 37.8 | 593.6 | 74.2 | 5572.0 |
+| RandomForest | 0.3458 | 0.1071 | 0.1399 | 0.8368 | 10.0 | 74.8 | 102.0 | 6090.8 |
+| XGBoost | 0.3963 | 0.1088 | 0.1363 | 0.7952 | 12.4 | 85.0 | 99.6 | 6080.6 |
+| LightGBM | 0.482 | 0.118 | 0.1556 | 0.8347 | 12.4 | 78.6 | 99.6 | 6087.0 |
 
 > Avaliação liderada por **ROC-AUC/Recall/F1** (não accuracy), dado o forte desbalanceamento. Features: complexidade (lizard), OO (CK) e processo (PyDriller) — **nenhuma derivada do alvo** (anti-vazamento).
 
