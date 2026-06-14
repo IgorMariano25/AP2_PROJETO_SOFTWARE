@@ -1,35 +1,38 @@
-# GitHub Metrics Analyzer (MSR Pipeline)
+# GitHub Metrics Analyzer — AP2 Security Analysis Pipeline
 
-Pipeline **completa, automatizada e reprodutível** de Mineração de Repositórios
-de Software (MSR) para repositórios **Java** grandes e ativos do GitHub.
+Pipeline **estática, automatizada e reprodutível** para estudo empírico de
+**postura de segurança** em repositórios Java da organização
+`NationalSecurityAgency` no GitHub, fundamentado em **ISO/IEC 25010/25023**
+e com predição por **Machine Learning**.
 
-O princípio central é: **cada métrica vem da melhor fonte**.
+> **Princípio central:** análise exclusivamente estática, sobre código-fonte
+> clonado. **Nenhum projeto é compilado, buildado ou executado.**
 
-| Tipo de dado | Fonte usada |
-|---|---|
-| Buscar repositórios | GitHub Search API / `gh` CLI |
-| Stars, forks, linguagem, licença, `pushed_at` | GitHub REST API |
-| Total de commits / histórico | Git local (`git rev-list`, `git log`) |
-| Commits por desenvolvedor | `git shortlog -sne --all` |
-| Commits por arquivo + churn | `git log --numstat` |
-| Pull requests + commits por PR | GitHub REST API |
-| Linhas de código | `cloc` (fallback: contador Python) |
-| Classes/interfaces/herança | `javalang` (parser Java em Python) |
-| Complexidade ciclomática | `lizard` |
-| Métricas de teste | varredura de `src/test`, `@Test`, frameworks |
+## Fontes de dados (AP2 — estudo de segurança)
+
+| Dimensão | Ferramenta | ISO 25010 (25023) |
+|---|---|---|
+| **SAST — alvo do ML** | Semgrep `--config auto` | Segurança (Integridade, Confidencialidade, Autenticidade) |
+| **Métricas OO** | CK JAR (Maurício Aniche) | Manutenibilidade |
+| **Complexidade** | lizard | Manutenibilidade / Confiabilidade |
+| **Métricas de processo** | PyDriller | Manutenibilidade |
+| **SCA (dependências)** | OSV API (Python, sem binário) | Segurança > Resistência |
+| **Segredos expostos** | detect-secrets | Segurança > Confidencialidade |
+| **Histórico Git** | git log / git shortlog | Manutenibilidade |
+| **Linhas de código** | cloc (fallback Python) | — (normalização) |
 
 ---
 
-## Por que `javalang` e não JavaParser?
+## Fonte única por dimensão OO (CK)
 
-O **JavaParser é uma biblioteca Java**, exigiria um utilitário Java empacotado
-com Maven/Gradle e chamado via `subprocess` (opção A do enunciado). Para manter
-**toda a pipeline em uma única linguagem (Python)** e evitar dependência de JVM
-e build externo, escolhemos a **opção B** com **`javalang`** — um parser Java
-puro em Python. É mais simples de integrar e suficiente para extrair classes,
-interfaces, classes abstratas, métodos, atributos, `extends` e `implements`.
-A complexidade ciclomática fica a cargo do `lizard`, que também é Python e
-analisa Java nativamente.
+As métricas orientadas a objetos vêm **exclusivamente do CK** (Maurício Aniche),
+a ferramenta canônica do estudo (WMC, DIT, NOC, CBO, RFC, LCOM …). Mantemos
+**uma única fonte por dimensão** (regra metodológica do estudo): não somamos um
+segundo parser estrutural ao CK, pois colunas duplicadas introduzem
+multicolinearidade e contaminam o *ranking de importância de features* — o
+resultado central que liga as métricas às sub-características da ISO 25010. A
+complexidade ciclomática fica a cargo do `lizard` (Python, analisa Java
+nativamente), dimensão distinta da estrutura OO.
 
 ---
 
@@ -124,24 +127,27 @@ python scripts/run_all.py --skip search,clone
 Rodar apenas algumas fases:
 
 ```powershell
-python scripts/run_all.py --only loc,complexity,structure,indicators,report
+python scripts/run_all.py --only loc,complexity,semgrep,ck,dataset,ml,report
 ```
 
 Ou rodar cada fase individualmente:
 
 ```powershell
-python scripts/search_repositories.py
-python scripts/clone_repositories.py
-python scripts/collect_git_metrics.py
-python scripts/collect_pr_metrics.py
-python scripts/collect_loc_metrics.py
-python scripts/collect_complexity_metrics.py
-python scripts/collect_structure_metrics.py
-python scripts/collect_test_metrics.py
-python scripts/consolidate.py
-python scripts/compute_indicators.py
-python scripts/generate_report.py
+python scripts/clone_repositories.py            # clone (sem build)
+python scripts/collect_loc_metrics.py           # LOC (normalização)
+python scripts/collect_complexity_metrics.py    # lizard (feature)
+python scripts/collect_semgrep_metrics.py       # SAST → target do ML
+python scripts/collect_pydriller_metrics.py     # processo (feature)
+python scripts/collect_ck_metrics.py            # CK / OO (feature)
+python scripts/collect_osv_metrics.py           # SCA (descritivo)
+python scripts/collect_gitleaks_metrics.py      # segredos (descritivo)
+python scripts/build_security_dataset.py        # → security_dataset.csv
+python scripts/ml_security_pipeline.py          # ML: GroupKFold, modelos, ROC, SHAP
 ```
+
+> `search_repositories.py` (seleção dos repos) e `collect_ck_ghidra.py` /
+> `collect_native_resumable.py` (coletas particionadas/retomáveis) são scripts
+> de apoio, executados sob demanda — não fazem parte do fluxo padrão.
 
 > Os scripts assumem que são executados a partir da raiz do projeto
 > (`github-metrics-analyzer/`). Os caminhos são resolvidos de forma absoluta
@@ -151,35 +157,19 @@ python scripts/generate_report.py
 
 ## Saídas
 
-| Arquivo | Conteúdo |
-|---|---|
-| `data/repositories.csv` | metadados do GitHub |
-| `data/commits.csv` | resumo de commits por repo |
-| `data/developers.csv` | commits por desenvolvedor |
-| `data/files.csv` | commits + churn por arquivo |
-| `data/pull_requests.csv` | PRs com estado, datas, commits |
-| `data/loc.csv` | LOC (total e Java) |
-| `data/structure.csv` | classes/interfaces/herança/métodos |
-| `data/complexity.csv` | NLOC, CCN, tokens, parâmetros por método |
-| `data/tests.csv` | testes, `@Test`, ratio main/test, frameworks |
-| `data/quality_indicators.csv` | indicadores derivados por repo |
-| `data/hotspots.csv` | hotspots (commits × complexidade) |
-| `metrics.db` | SQLite com uma tabela por CSV |
-| `reports/report.md` | relatório final + gráficos |
-
----
-
-## Indicadores derivados
-
-- **Atividade do projeto:** commits + dias ativos + PRs.
-- **Distribuição de contribuição:** % de commits dos top 5 contribuidores.
-- **Risco de concentração:** classificação low/medium/high.
-- **Complexidade média:** média de CCN por método.
-- **Testabilidade:** nº de testes / nº de métodos.
-- **Manutenibilidade:** LOC, CCN e tamanho médio dos métodos.
-- **Modularidade:** classes, interfaces e heranças.
-- **Saúde de PRs:** abertas vs fechadas, commits por PR, tempo médio de fechamento.
-- **Hotspots:** `commits no arquivo × CCN médio do arquivo` — candidatos a refatoração.
+| Arquivo | Conteúdo | Papel no estudo |
+|---|---|---|
+| `data/repositories.csv` | metadados do GitHub (stars, licença, …) | descritivo da seleção |
+| `data/loc.csv` | LOC (total e Java) por repo | normalização por KLOC |
+| `data/complexity.csv` | NLOC, CCN, tokens, parâmetros por método | feature (lizard) |
+| `data/ck_metrics.csv` | WMC, DIT, CBO, RFC, LCOM … por arquivo | feature (CK) |
+| `data/pydriller_metrics.csv` | commits, autores, churn, idade por arquivo | feature (processo) |
+| `data/semgrep_findings.csv` | achados de segurança por arquivo (CWE) | **alvo do ML** |
+| `data/osv_*.csv` | CVEs declarados (pom.xml/Gradle) | descritivo (SCA) |
+| `data/secrets_*.csv` | segredos detectados | descritivo (Confidencialidade) |
+| `data/security_dataset.csv` | dataset nível-arquivo (features + target) | entrada do ML |
+| `data/dataset_dictionary.md` | dicionário de colunas + mapeamento ISO 25010 | documentação |
+| `reports/charts/*.png` | ROC, importância de features, SHAP, matriz de confusão | resultados do ML |
 
 ---
 

@@ -1,0 +1,11 @@
+repository,deps_declared,deps_queryable,vulns_direct,vulns_critical,vulns_high,vulns_medium,vulns_low,avg_cvss
+NationalSecurityAgency/datawave,486,64,30,0,0,0,30,0.0
+NationalSecurityAgency/datawave-audit-service,11,0,0,0,0,0,0,0.0
+NationalSecurityAgency/datawave-authorization-service,16,0,0,0,0,0,0,0.0
+NationalSecurityAgency/datawave-query-service,20,2,0,0,0,0,0,0.0
+NationalSecurityAgency/emissary,82,0,0,0,0,0,0,0.0
+NationalSecurityAgency/fractalrabbit,7,7,0,0,0,0,0,0.0
+NationalSecurityAgency/ghidra,67,67,0,0,0,0,0,0.0
+NationalSecurityAgency/lemongrenade,38,15,9,0,0,0,9,0.0
+NationalSecurityAgency/rank-based-linkage,4,4,0,0,0,0,0,0.0
+NationalSecurityAgency/timely,90,5,1,0,0,0,1,0.0

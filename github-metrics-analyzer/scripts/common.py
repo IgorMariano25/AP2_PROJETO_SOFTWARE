@@ -54,6 +54,23 @@ CHARTS_DIR = REPORTS_DIR / "charts"
 REPOS_TXT = ROOT / "repos.txt"
 DB_PATH = ROOT / "metrics.db"
 
+# --------------------------------------------------------------------------- #
+# Temp directory redirection
+# --------------------------------------------------------------------------- #
+# The pipeline processes large repos (e.g. ghidra: 15k+ Java files, deep git
+# history). Tools like PyDriller (GitPython), Semgrep and git spawn subprocesses
+# that write to the system TEMP dir. On Windows that defaults to C:, which may be
+# small/full. We redirect TEMP/TMP to a project-local folder on the same volume
+# as the data (lots of free space) so heavy runs don't exhaust the system drive.
+# Subprocesses inherit os.environ, so git/semgrep/pydriller all follow suit.
+TMP_DIR = ROOT / ".tmp"
+TMP_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["TMP"] = str(TMP_DIR)
+os.environ["TEMP"] = str(TMP_DIR)
+os.environ["TMPDIR"] = str(TMP_DIR)  # POSIX convention (Git Bash, etc.)
+import tempfile as _tempfile  # noqa: E402
+_tempfile.tempdir = str(TMP_DIR)
+
 for _d in (REPOS_DIR, DATA_DIR, REPORTS_DIR, CHARTS_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 

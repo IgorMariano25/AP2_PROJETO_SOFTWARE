@@ -1,11 +1,17 @@
 repos/
-repos/alibaba_nacos
-repos/apache_cassandra
 
 __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Tool downloads and temp (CK JAR, redirected TEMP, CK output)
+tools/
+.tmp/
+data/pilot_semgrep.json
+
+# Estado intermediário/retomável das coletas (consolidado depois em data/*.csv)
+data/partial/
 
 # Secrets - never commit tokens/credentials
 .env

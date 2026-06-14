@@ -1,2 +1,1 @@
 data/complexity.csv filter=lfs diff=lfs merge=lfs -text
-metrics.db filter=lfs diff=lfs merge=lfs -text
