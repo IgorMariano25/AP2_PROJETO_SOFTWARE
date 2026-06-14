@@ -3,7 +3,9 @@
 |--------|------|-------------|------------------|
 | `repository` | str | GitHub full name of the repository (owner/repo) |  |
 | `file` | str | Relative path of the .java file within the repository |  |
-| `has_security_risk` | int64 | Binary target (ISO 25010 Segurança): 1 = file has ≥1 Semgrep security finding; 0 = no finding | Segurança |
+| `n_semgrep` | int64 | Number of Semgrep security findings in the file (descriptive; excluded from ML) |  |
+| `n_codeql` | int64 | Number of CodeQL security findings in the file (descriptive; excluded from ML) |  |
+| `has_security_risk` | int64 | Binary target (ISO 25010 Segurança): 1 = file flagged by Semgrep OR CodeQL (union); 0 = no finding | Segurança |
 | `ccn_max` | float64 | Maximum cyclomatic complexity (CCN) among all methods in the file |  |
 | `ccn_mean` | float64 | Mean CCN across all methods |  |
 | `ccn_sum` | float64 | Sum of CCN across all methods (≈ WMC proxy without class weighting) |  |

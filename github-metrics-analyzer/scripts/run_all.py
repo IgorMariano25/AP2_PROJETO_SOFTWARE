@@ -7,23 +7,30 @@ phases (e.g. --skip clone when repos are already present).
 AP2 Security pipeline phases (NSA Java repos, ISO/IEC 25010 study):
   clone      — clone/update the 10 NSA repos from repos.txt (no build)
   loc        — lines of code via cloc (fallback: Python counter) — normalisation
-  complexity — cyclomatic complexity per method via lizard (feature)
+  complexity — cyclomatic complexity per method via lizard (structural FALLBACK)
+  sonarqube  — structural metrics via SonarQube (CANONICAL; needs server+token)
   semgrep    — SAST security findings per file → ML target (Semgrep)
+  codeql     — SAST security findings per file → ML target (CodeQL, union)
   pydriller  — file-level process metrics (authors, age, churn) via PyDriller (feature)
   ck         — OO metrics (WMC, DIT, CBO, LCOM …) via CK JAR (feature)
   osv        — SCA: declared CVEs from pom.xml via OSV API (descriptive)
-  secrets    — credential/secret detection via detect-secrets (descriptive)
+  secrets    — credential/secret detection: Gitleaks + detect-secrets (descriptive)
   dataset    — merge all metrics → security_dataset.csv (file-level)
   ml         — ML pipeline: GroupKFold, 5 models, SHAP, ROC charts
   report     — comparative ISO 25010 report (per-repo posture, CWE, charts)
 
-Note: process metrics come from PyDriller (the canonical process tool), not from
-a separate git-log collector — that avoids double-counting the same dimension.
+Notes:
+  - Process metrics come from PyDriller alone (canonical process tool) — avoids
+    double-counting the same dimension.
+  - The SAST target is the UNION of Semgrep and CodeQL findings.
+  - sonarqube/codeql/secrets-gitleaks depend on heavy external tools; if those
+    are absent each phase writes an empty/partial output and the dataset falls
+    back gracefully (lizard for structure, Semgrep-only target, detect-secrets).
 
 Examples:
     python scripts/run_all.py --skip clone            (repos already cloned)
-    python scripts/run_all.py --only semgrep,dataset,ml
-    python scripts/run_all.py --only clone,complexity,semgrep,pydriller,ck,dataset,ml
+    python scripts/run_all.py --only semgrep,codeql,dataset,ml
+    python scripts/run_all.py --only sonarqube,dataset,ml   (after server is up)
 """
 from __future__ import annotations
 
@@ -41,7 +48,9 @@ PHASES = [
     ("clone",      "clone_repositories"),
     ("loc",        "collect_loc_metrics"),
     ("complexity", "collect_complexity_metrics"),
+    ("sonarqube",  "collect_sonarqube_metrics"),
     ("semgrep",    "collect_semgrep_metrics"),
+    ("codeql",     "collect_codeql_metrics"),
     ("pydriller",  "collect_pydriller_metrics"),
     ("ck",         "collect_ck_metrics"),
     ("osv",        "collect_osv_metrics"),

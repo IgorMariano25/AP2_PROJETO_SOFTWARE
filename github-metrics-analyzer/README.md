@@ -12,14 +12,29 @@ e com predição por **Machine Learning**.
 
 | Dimensão | Ferramenta | ISO 25010 (25023) |
 |---|---|---|
-| **SAST — alvo do ML** | Semgrep `--config auto` | Segurança (Integridade, Confidencialidade, Autenticidade) |
+| **SAST — alvo do ML** | **Semgrep ∪ CodeQL** (união) | Segurança (Integridade, Confidencialidade, Autenticidade) |
+| **Estrutura/complexidade** | **SonarQube** (canônico) · lizard (fallback) | Manutenibilidade / Confiabilidade |
 | **Métricas OO** | CK JAR (Maurício Aniche) | Manutenibilidade |
-| **Complexidade** | lizard | Manutenibilidade / Confiabilidade |
 | **Métricas de processo** | PyDriller | Manutenibilidade |
 | **SCA (dependências)** | OSV API (Python, sem binário) | Segurança > Resistência |
-| **Segredos expostos** | detect-secrets | Segurança > Confidencialidade |
-| **Histórico Git** | git log / git shortlog | Manutenibilidade |
+| **Segredos expostos** | **Gitleaks + detect-secrets** (união deduplicada) | Segurança > Confidencialidade |
 | **Linhas de código** | cloc (fallback Python) | — (normalização) |
+
+> **Alvo (união Semgrep ∪ CodeQL):** um arquivo é positivo se **qualquer** das
+> duas SASTs o sinaliza (maximiza recall — em segurança, falso-negativo é o pior
+> erro, §8.4). As contagens por ferramenta (`n_semgrep`, `n_codeql`) entram no
+> dataset apenas para análise de concordância e são **excluídas das features**
+> do ML (anti-vazamento).
+>
+> **Estrutura (SonarQube canônico):** quando `data/sonarqube.csv` existe, ele é a
+> fonte de complexidade/duplicação/code smells/comentários; o lizard só é usado
+> como fallback offline — **nunca os dois juntos** (regra "uma fonte por
+> dimensão", evita multicolinearidade). SonarQube **não** é oráculo de segurança
+> (sem bytecode, §9.1): suas medidas de segurança são ignoradas.
+>
+> **Segredos (descritivo):** Gitleaks (canônico) + detect-secrets, com **dedup
+> por (arquivo, linha, tipo)** e coluna `detected_by` para validação cruzada.
+> Não é feature/alvo do ML, então combinar não causa vazamento.
 
 ---
 
@@ -61,15 +76,41 @@ github-metrics-analyzer/
 ```powershell
 # GitHub CLI (opcional, recomendado)
 winget install GitHub.cli        # Windows
-# sudo apt install gh            # Linux
 gh auth login
 
 # cloc (opcional; há fallback em Python)
 winget install AlDanial.Cloc     # Windows
-# sudo apt install cloc          # Linux  /  npm install -g cloc
 
-# Git deve estar instalado e no PATH
+# Git e JDK 17+ devem estar no PATH (JDK necessário para o CK)
 ```
+
+#### Ferramentas pesadas (SonarQube, CodeQL, Gitleaks)
+
+Binários pesados **não versionados** no Git. Por padrão os scripts os procuram
+no `PATH` e em `E:\developer-tools\<ferramenta>`; ou aponte caminhos explícitos
+no `.env` (`CODEQL_CLI`, `SONARSCANNER_CLI`, `GITLEAKS_CLI`, `DEVELOPER_TOOLS`).
+**Se uma ferramenta faltar, a fase grava saída vazia e o pipeline degrada com
+elegância** (lizard no lugar do SonarQube; alvo só com Semgrep; só detect-secrets).
+
+```powershell
+# Gitleaks (segredos)
+winget install gitleaks                       # ou scoop install gitleaks
+
+# CodeQL CLI (SAST #2) — baixe o bundle e extraia para E:\developer-tools\codeql
+#   https://github.com/github/codeql-cli-binaries/releases
+#   (inclui as query packs java-security-extended)
+
+# SonarQube (métricas estruturais canônicas) — servidor + scanner
+docker run -d --name sonarqube -p 9000:9000 sonarqube:community
+#   acesse http://localhost:9000 (admin/admin), troque a senha, gere um token e
+#   preencha SONAR_HOST_URL / SONAR_TOKEN no .env
+#   SonarScanner CLI → E:\developer-tools\sonar-scanner  (ou npm i -g sonarqube-scanner)
+```
+
+> **Princípio sem build:** o SonarScanner roda em modo source-only
+> (`sonar.java.binaries` apontado para os próprios fontes); regras que exigem
+> bytecode simplesmente não disparam — usamos só as métricas estruturais (AST).
+> O CodeQL extrai Java em `--build-mode=none` (sem compilar).
 
 ### 2. Ambiente Python
 
@@ -135,12 +176,14 @@ Ou rodar cada fase individualmente:
 ```powershell
 python scripts/clone_repositories.py            # clone (sem build)
 python scripts/collect_loc_metrics.py           # LOC (normalização)
-python scripts/collect_complexity_metrics.py    # lizard (feature)
-python scripts/collect_semgrep_metrics.py       # SAST → target do ML
+python scripts/collect_complexity_metrics.py    # lizard (fallback estrutural)
+python scripts/collect_sonarqube_metrics.py     # SonarQube (estrutural canônico)
+python scripts/collect_semgrep_metrics.py       # SAST #1 → target do ML
+python scripts/collect_codeql_metrics.py        # SAST #2 → target (união)
 python scripts/collect_pydriller_metrics.py     # processo (feature)
 python scripts/collect_ck_metrics.py            # CK / OO (feature)
 python scripts/collect_osv_metrics.py           # SCA (descritivo)
-python scripts/collect_gitleaks_metrics.py      # segredos (descritivo)
+python scripts/collect_gitleaks_metrics.py      # segredos: Gitleaks + detect-secrets
 python scripts/build_security_dataset.py        # → security_dataset.csv
 python scripts/ml_security_pipeline.py          # ML: GroupKFold, modelos, ROC, SHAP
 ```
@@ -161,7 +204,9 @@ python scripts/ml_security_pipeline.py          # ML: GroupKFold, modelos, ROC, 
 |---|---|---|
 | `data/repositories.csv` | metadados do GitHub (stars, licença, …) | descritivo da seleção |
 | `data/loc.csv` | LOC (total e Java) por repo | normalização por KLOC |
-| `data/complexity.csv` | NLOC, CCN, tokens, parâmetros por método | feature (lizard) |
+| `data/complexity.csv` | NLOC, CCN, tokens, parâmetros por método | feature estrutural (lizard, fallback) |
+| `data/sonarqube.csv` | complexity, cognitive, duplicação, code smells, comentários | feature estrutural (SonarQube, canônico) |
+| `data/codeql_findings.csv` | achados de segurança por arquivo (CWE) | **alvo do ML** (união com Semgrep) |
 | `data/ck_metrics.csv` | WMC, DIT, CBO, RFC, LCOM … por arquivo | feature (CK) |
 | `data/pydriller_metrics.csv` | commits, autores, churn, idade por arquivo | feature (processo) |
 | `data/semgrep_findings.csv` | achados de segurança por arquivo (CWE) | **alvo do ML** |

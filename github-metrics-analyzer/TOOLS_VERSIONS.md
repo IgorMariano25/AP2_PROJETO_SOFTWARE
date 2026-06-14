@@ -44,12 +44,28 @@ Ferramentas externas pesadas não são versionadas no Git; as versões ficam aqu
 |---|---|---|---|
 | CK (Maurício Aniche) | 0.7.0 | Maven Central `ck-0.7.0-jar-with-dependencies.jar` (fat-jar) → `tools/ck.jar` | última versão publicada; standalone, sem build |
 | OSV | API `https://api.osv.dev/v1/query` (sem binário) | api.osv.dev | consultada via Python (`collect_osv_metrics.py`) |
+| SonarQube (servidor) | _preencher (ex.: 10.x community)_ | `docker run sonarqube:community` | métricas estruturais (source-only); **registrar o modo MQR/Clean Code** |
+| SonarScanner CLI | _preencher_ | SonarSource / `E:\developer-tools\sonar-scanner` | `-Dsonar.java.binaries=<fontes>` (sem bytecode) |
+| CodeQL CLI + java pack | _preencher (ex.: 2.x)_ | github/codeql-cli-binaries → `E:\developer-tools\codeql` | `--build-mode=none`; suíte `java-security-extended` |
+| Gitleaks | _preencher (ex.: 8.x)_ | winget/scoop ou release → `E:\developer-tools\gitleaks` | scan do estado atual (`gitleaks dir`) |
+
+> **A preencher após a execução na máquina com as ferramentas instaladas.** Rode
+> `codeql --version`, `sonar-scanner --version`, `gitleaks version` e cole aqui.
 
 ## Parâmetros de execução fixados
 
-- **Semgrep (alvo):** `--config auto`. Regras `p/java` retornaram 0 achados no piloto;
-  `auto` dispara regras `java.lang.security.audit.*` com tags CWE. Achado por arquivo
-  `.java` → `has_security_risk = 1`.
+- **Alvo de segurança (Semgrep ∪ CodeQL):** `has_security_risk = 1` se o arquivo `.java`
+  for sinalizado por **qualquer** das duas SASTs (união → maximiza recall). Contagens
+  por ferramenta (`n_semgrep`, `n_codeql`) ficam no dataset só para concordância e são
+  **excluídas das features** do ML (anti-vazamento).
+- **Semgrep:** `--config auto` (dispara `java.lang.security.audit.*` com tags CWE;
+  `p/java` retornou 0 no piloto).
+- **CodeQL:** `database create --build-mode=none` + `analyze java-security-extended.qls`
+  (SARIF v2.1.0). Sem compilar o projeto.
+- **SonarQube (estrutural canônico):** scanner source-only (`sonar.java.binaries`
+  apontado para os fontes); métricas lidas pela Web API `/api/measures/component_tree`
+  (`qualifiers=FIL`), nunca do dashboard. Regras de segurança/bug que exigem bytecode
+  **não disparam** (§9.1) → usado só para estrutura. lizard fica como fallback offline.
 - **CK:** `java -jar ck.jar <raiz> false 0 true <prefixo_saida>/` (sem variáveis de tipo
   por classpath → bindings parciais, aceitável). Para `ghidra`, execução **particionada por
   módulo** (`**/src/main/java`, `**/src/test/java`) para isolar o NPE do JDT em um único
@@ -57,14 +73,24 @@ Ferramentas externas pesadas não são versionadas no Git; as versões ficam aqu
 - **PyDriller:** clone **completo** (sem `--depth 1`); métricas por arquivo `.java`.
 - **OSV:** lê manifests `pom.xml`/Gradle (dependências **diretas** confiáveis;
   **transitivas parciais** sem build → limitação declarada).
-- **detect-secrets:** scan do estado atual; resultado descritivo (não é feature do ML).
+- **Segredos (Gitleaks + detect-secrets):** scan do estado atual pelas duas ferramentas,
+  **união deduplicada** por (arquivo, linha, tipo), com coluna `detected_by`
+  (gitleaks/detect-secrets/both) para validação cruzada. Descritivo — não é feature/alvo
+  do ML, então combinar não causa vazamento nem dupla contagem.
 
-## Substituições documentadas em relação ao prompt
+## Alinhamento com o prompt (stack canônica completa)
 
-| Prompt (canônico) | Usado neste estudo | Motivo |
+A stack agora segue as ferramentas canônicas do prompt (§5). Ferramentas com
+dependência pesada degradam com elegância quando ausentes (ver README).
+
+| Prompt (canônico) | Implementação | Observação |
 |---|---|---|
-| SonarQube (métricas estruturais) | lizard + javalang (nativos de fonte) | mais coerente com "só clone, sem build"; SonarQube exigiria bytecode |
-| Gitleaks (binário) | detect-secrets (Python) | evita instalar binário; mesma dimensão (Confidencialidade) |
-| CodeQL (opcional) | não utilizado | Semgrep já fornece o alvo; CodeQL era reforço opcional |
+| SonarQube (métricas estruturais) | **SonarQube** (canônico) + lizard (fallback) | source-only; lizard só quando o servidor não está disponível |
+| Semgrep / CodeQL (alvo) | **Semgrep ∪ CodeQL** (união) | CodeQL `build-mode none`; alvo = OR das duas |
+| Gitleaks (segredos) | **Gitleaks** + detect-secrets (união deduplicada) | validação cruzada na mesma dimensão |
+| CK / PyDriller / OSV | inalterado | OO / processo / SCA |
+
+> A versão anterior usava lizard+javalang (estrutura), só Semgrep (alvo) e só
+> detect-secrets (segredos). O javalang foi removido (redundante com o CK).
 </content>
 </invoke>

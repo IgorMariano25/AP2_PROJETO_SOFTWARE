@@ -41,7 +41,11 @@ log = get_logger("ml")
 warnings.filterwarnings("ignore")
 
 TARGET = "has_security_risk"
-SKIP_COLS = {"repository", "file", TARGET}
+# Identifier + label + target-derived columns. The per-tool finding counts
+# (n_semgrep, n_codeql) are descriptive only — using them as features would be
+# circular (they derive from the SAST that defines the target). Keep in sync
+# with build_security_dataset.NONFEATURE_COLS.
+SKIP_COLS = {"repository", "file", TARGET, "n_semgrep", "n_codeql"}
 
 # ------------------------------------------------------------------ #
 # Load & prepare dataset
