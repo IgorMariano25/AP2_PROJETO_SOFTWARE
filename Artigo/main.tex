@@ -15,13 +15,17 @@
 \sloppy
 
 \title{Métricas de qualidade de código predizem arquivos Java propensos a
-risco de segurança? Um estudo empírico em repositórios da \textit{National
+risco de segurança? Um estudo sobre repositórios da \textit{National
 Security Agency} sob a ótica da ISO/IEC~25010}
 
-\author{Igor Mariano\inst{1}}
+\author{Igor Mariano\inst{1} \and Filipe Gama\inst{2}}
 
-\address{Curso de Engenharia de Software\\
+\address{
+  \inst{1}Curso de Engenharia de Software\\
   \email{igor.mariano@envoylog.com.br}
+  \and
+  \inst{2}Curso de Engenharia de Software\\
+  \email{filipesgama@gmail.com}
 }
 
 \begin{document}
@@ -192,10 +196,17 @@ Segredos (descr.)  & Gitleaks + detect-secrets & Segurança $>$ Confidencialidad
 \end{table}
 
 \subsection{Construção do \textit{dataset}}
-A unidade de análise é o arquivo. Consolidaram-se, por arquivo,
-o rótulo de segurança (união Semgrep~$\cup$~CodeQL) e as \textit{features}
-estruturais, de qualidade e de processo, totalizando \textbf{31.388 arquivos} e
-41 \textit{features}.
+A unidade de análise é o arquivo, e o \emph{universo} considerado é a união dos
+arquivos com ao menos uma \textit{feature} extraível (estrutural, OO ou de
+processo); o rótulo de segurança é associado a esse universo por \emph{junção à
+esquerda}. Em consequência, arquivos sinalizados por SAST mas sem qualquer
+métrica de \textit{feature} (p.~ex.\ fontes não parseáveis pelo CK ou caminhos
+não indexados pelo SonarQube) ficam de fora: dos \textbf{645} arquivos brutos
+marcados pela união SAST, \textbf{560} (86,8\%) permanecem rotulados como
+positivos no \textit{dataset}. Consolidaram-se, por arquivo, o rótulo de
+segurança (união Semgrep~$\cup$~CodeQL) e as \textit{features} estruturais, de
+qualidade e de processo, totalizando \textbf{31.388 arquivos} e 41
+\textit{features}.
 
 \subsection{Prevenção de vazamento e desbalanceamento}
 Para evitar circularidade, \textbf{nenhuma \textit{feature} deriva do alvo}: as
@@ -213,8 +224,8 @@ repositórios e testando no restante, para medir generalização entre projetos.
 \textit{Folds} de teste de classe única são descartados de forma robusta.
 Comparam-se: Regressão Logística, Árvore de Decisão, \textit{Random Forest}
 \cite{breiman2001}, \textit{XGBoost} \cite{xgboost2016} e \textit{LightGBM}. A
-importância de \textit{features} é reportada pelo \textit{Random Forest} (Gini)
-e por SHAP \cite{shap2017}.
+importância de \textit{features} é reportada pelo \textit{Random Forest}
+(impureza de Gini).
 
 % =====================================================================
 \section{Resultados e Discussão}
@@ -233,9 +244,11 @@ arquivos em risco, o Semgrep marca 211 e o CodeQL 369, com apenas 20 em comum
 
 \begin{table}[ht]
 \centering
-\caption{Postura de segurança por repositório. \emph{Sem.}\ e \emph{CQL}\ são
-achados de Semgrep e CodeQL; \emph{Risco}\ é o número de arquivos sinalizados
-pela união; \emph{CVEs}\ vêm do OSV e \emph{Segr.}\ de Gitleaks+detect-secrets.}
+\caption{Postura de segurança por repositório. \emph{Sem.}\ e \emph{CQL}\ contam
+\emph{achados} (não arquivos) de Semgrep e CodeQL --- por isso não são somáveis
+ao \emph{Risco}, que é o número de \emph{arquivos} sinalizados pela união
+Semgrep~$\cup$~CodeQL; \emph{CVEs}\ vêm do OSV e \emph{Segr.}\ de
+Gitleaks+detect-secrets.}
 \label{tab:repos}
 \scriptsize
 \begin{tabular}{@{}lrrrrrrr@{}}
@@ -383,7 +396,11 @@ SAST de fonte, sujeita a falsos positivos/negativos; (v)~sem \textit{bytecode},
 o SonarQube não é oráculo de segurança Java --- por isso é usado apenas para
 métricas estruturais, e o alvo vem da união Semgrep~$\cup$~CodeQL; (vi)~a
 homogeneidade do ecossistema \emph{DataWave} (quatro repositórios) afeta a
-validade externa.
+validade externa; (vii)~o rótulo restringe-se ao universo de arquivos com
+\textit{features} extraíveis (\emph{junção à esquerda}): cerca de 13\% dos
+arquivos brutos sinalizados por SAST não possuem métricas
+estruturais/OO/processo e são excluídos, o que pode introduzir viés caso essa
+exclusão não seja aleatória.
 
 \textbf{Trabalhos futuros:} explorar limiares de decisão calibrados por custo
 para melhorar Recall sob desbalanceamento; ampliar a amostra para organizações
