@@ -22,7 +22,7 @@ Security Agency} sob a ótica da ISO/IEC~25010}
 
 \address{
   \inst{1}Curso de Engenharia de Software\\
-  \email{igor.mariano@envoylog.com.br}
+  \email{igor-mariano@outlook.com.br}
   \and
   \inst{2}Curso de Engenharia de Software\\
   \email{filipesgama@gmail.com}
@@ -140,14 +140,26 @@ adotar uma abordagem 100\% estática (sem \textit{build}).
 % =====================================================================
 
 \subsection{Seleção dos repositórios}
+
 Selecionaram-se 10 repositórios Java da organização
-\textit{NationalSecurityAgency}~\cite{nsa_ghidra,nsa_datawave,nsa_emissary,nsa_timely,nsa_fractalrabbit,nsa_lemongrenade,nsa_dwquery,nsa_dwaudit,nsa_dwauthz,nsa_ranklinkage}
-(Tabela~\ref{tab:repos}), priorizando sistemas substanciais e descartando
-módulos triviais. \textbf{Transparência:} quatro
-repositórios (\texttt{datawave}, \texttt{datawave-query-service},
-\texttt{datawave-audit-service}, \texttt{datawave-authorization-service})
-pertencem ao mesmo ecossistema \emph{DataWave}, o que constitui variável de
-confusão e limitação de validade externa.
+\textit{NationalSecurityAgency}, listados na Tabela~\ref{tab:repos},
+priorizando sistemas substanciais e descartando módulos triviais.
+
+\textbf{Transparência:} quatro repositórios
+(\texttt{datawave}, \texttt{datawave-query-service},
+\texttt{datawave-audit-service} e
+\texttt{datawave-authorization-service}) pertencem ao mesmo ecossistema
+\emph{DataWave}, o que constitui uma variável de confusão e uma limitação de
+validade externa.
+
+\nocite{nsa_github,nsa_ghidra,nsa_emissary,nsa_timely,nsa_datawave,nsa_fractalrabbit,nsa_lemongrenade,nsa_dwquery,nsa_dwaudit,nsa_dwauthz,nsa_ranklinkage}
+
+\textbf{Transparência:} quatro repositórios
+(\texttt{datawave}, \texttt{datawave-query-service},
+\texttt{datawave-audit-service} e
+\texttt{datawave-authorization-service}) pertencem ao mesmo ecossistema
+\emph{DataWave}, o que constitui uma variável de confusão e uma limitação de
+validade externa.
 
 \subsection{Abordagem estática (apenas clone, sem \textit{build})}
 Os repositórios foram \textbf{apenas clonados}; nenhum projeto foi compilado ou
