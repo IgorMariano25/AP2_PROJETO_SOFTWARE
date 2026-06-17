@@ -1,0 +1,431 @@
+% =====================================================================
+% Artigo SBC — Análise de segurança de repositórios Java da NSA
+% Template oficial da SBC (sbc-template). Ver Artigo/README.md para
+% instruções de compilação no Overleaf.
+% =====================================================================
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\sloppy
+
+\title{Métricas de qualidade de código predizem arquivos Java propensos a
+risco de segurança? Um estudo sobre repositórios da \textit{National
+Security Agency} sob a ótica da ISO/IEC~25010}
+
+\author{Igor Mariano\inst{1} \and Filipe Gama\inst{2}}
+
+\address{
+  \inst{1}Curso de Engenharia de Software\\
+  \email{igor-mariano@outlook.com.br}
+  \and
+  \inst{2}Curso de Engenharia de Software\\
+  \email{filipesgama@gmail.com}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{resumo}
+Investiga-se, por análise estática (apenas clone, sem \textit{build}), se
+métricas de qualidade de código predizem arquivos Java propensos a risco de
+segurança. Foram analisados 10 repositórios Java da organização
+\textit{NationalSecurityAgency} (31.388 arquivos), construindo-se
+um \textit{dataset} em nível de arquivo cujo rótulo provém da \emph{união} de
+dois analisadores SAST (Semgrep~$\cup$~CodeQL) e cujas \textit{features} vêm de
+métricas estruturais e de manutenibilidade/processo (complexidade e estrutura
+via SonarQube, métricas OO~CK e métricas de histórico), mapeadas à característica
+\emph{Segurança} do modelo de qualidade ISO/IEC~25010. Cinco modelos foram
+avaliados com \textit{GroupKFold} por repositório. Os resultados (ROC-AUC até
+0,84) indicam que tais métricas carregam sinal discriminante, ainda que a
+classificação precisa seja limitada pelo forte desbalanceamento (1,8\% de
+positivos).
+\end{resumo}
+
+\begin{abstract}
+We investigate, through static analysis (clone-only, no build), whether code
+quality metrics can predict Java files prone to security risk. We analysed 10
+Java repositories from the \textit{NationalSecurityAgency} organisation (31,388
+files), building a file-level dataset whose label comes from the \emph{union} of
+two SAST tools (Semgrep~$\cup$~CodeQL) and whose features come from structural
+and maintainability/process metrics (complexity and structure via SonarQube, CK
+OO metrics and history metrics), mapped to the \emph{Security} characteristic of
+the ISO/IEC~25010 quality model. Five models were evaluated with repository-wise
+\textit{GroupKFold}. Results (ROC-AUC up to 0.84) indicate that such metrics
+carry discriminant signal, although precise classification is limited by the
+strong class imbalance (1.8\% positives).
+\end{abstract}
+
+% =====================================================================
+\section{Introdução}
+% =====================================================================
+
+A garantia de segurança em sistemas de software é um requisito crítico, e a
+identificação antecipada de artefatos propensos a falhas de segurança permite
+direcionar esforços de revisão e teste. A norma \textbf{ISO/IEC~25010}
+\cite{iso25010} estabelece um modelo de qualidade de produto no qual
+\emph{Segurança} é uma característica de primeira ordem, ao lado de
+\emph{Manutenibilidade} e \emph{Confiabilidade}. Uma questão de pesquisa
+recorrente em Mineração de Repositórios de Software (MSR) é se medidas associadas
+a uma característica de qualidade ajudam a prever fragilidades em outra
+\cite{shin2011,zimmermann2010}.
+
+Este trabalho testa empiricamente a seguinte pergunta:
+
+\begin{quote}
+\textit{Métricas de qualidade de código (complexidade, métricas orientadas a
+objetos e métricas de processo) são capazes de predizer arquivos Java propensos
+a riscos de segurança?}
+\end{quote}
+
+A leitura normativa é direta: trata-se de verificar se medidas de
+\emph{Manutenibilidade}/\emph{Confiabilidade} (definidas pela
+ISO/IEC~25023~\cite{iso25023}) predizem fraquezas na característica
+\emph{Segurança} do modelo ISO/IEC~25010. As contribuições são: (i)~um
+\textit{dataset} reprodutível em nível de arquivo \texttt{.java} para 10
+sistemas Java reais; (ii)~um \textit{pipeline} de coleta estática e de
+\textit{Machine Learning} sem necessidade de \textit{build}; e (iii)~evidência
+sobre o poder preditivo das métricas de qualidade quanto a risco de segurança,
+discutida à luz da ISO/IEC~25010.
+
+% =====================================================================
+\section{Fundamentação Teórica}
+% =====================================================================
+
+\subsection{A série SQuaRE e a ISO/IEC 25010}
+A família \textbf{ISO/IEC~25000} (SQuaRE --- \textit{Software Quality
+Requirements and Evaluation}) organiza as normas de qualidade de software
+\cite{iso25000}. A \textbf{ISO/IEC~25010} \cite{iso25010} define o \emph{modelo}
+de qualidade do produto; na versão de 2011, possui oito características, entre
+elas \emph{Segurança}, decomposta em cinco sub-características:
+\emph{Confidencialidade}, \emph{Integridade}, \emph{Não-repúdio},
+\emph{Responsabilização} e \emph{Autenticidade}. A revisão de 2023 adicionou
+\emph{Safety} como característica própria e a sub-característica
+\emph{Resistência} à Segurança. A \textbf{ISO/IEC~25023} \cite{iso25023}
+define as \emph{medidas} das características --- é a norma que fundamenta
+\emph{como} medir. O modelo (25010) e as medidas (25023) são citados em conjunto.
+
+\subsection{Análise estática: SAST e SCA}
+\emph{Static Application Security Testing} (SAST) analisa o código-fonte em
+busca de fraquezas (ex.: injeção, desserialização insegura). \emph{Software
+Composition Analysis} (SCA) examina dependências declaradas em busca de
+vulnerabilidades conhecidas (CVE). Ambas operam sem executar o sistema.
+
+\subsection{Métricas de qualidade}
+A complexidade ciclomática \cite{mccabe1976} mede o número de caminhos
+independentes em um método. As métricas orientadas a objetos de Chidamber e
+Kemerer \cite{ck1994} --- WMC, DIT, CBO, RFC, LCOM --- capturam acoplamento,
+coesão e herança. Métricas de processo (número de \textit{commits}, autores
+distintos, \textit{churn}, idade do arquivo) capturam a dinâmica de evolução
+\cite{spadini2018}.
+
+\subsection{Trabalhos relacionados}
+A predição de defeitos e de vulnerabilidades a partir de métricas de código é
+amplamente estudada. \citeonline{shin2011} avaliaram complexidade, \textit{code
+churn} e atividade de desenvolvedores como indicadores de vulnerabilidades.
+\citeonline{zimmermann2010} predisseram vulnerabilidades no Windows~Vista.
+\citeonline{walden2014} compararam métricas de software e \textit{text mining}
+para prever componentes vulneráveis. Este trabalho difere ao amarrar
+explicitamente as \textit{features} às sub-características da ISO/IEC~25010 e ao
+adotar uma abordagem 100\% estática (sem \textit{build}).
+
+% =====================================================================
+\section{Metodologia}
+% =====================================================================
+
+\subsection{Seleção dos repositórios}
+
+Selecionaram-se 10 repositórios Java da organização
+\textit{NationalSecurityAgency}, listados na Tabela~\ref{tab:repos},
+priorizando sistemas substanciais e descartando módulos triviais.
+
+\textbf{Transparência:} quatro repositórios
+(\texttt{datawave}, \texttt{datawave-query-service},
+\texttt{datawave-audit-service} e
+\texttt{datawave-authorization-service}) pertencem ao mesmo ecossistema
+\emph{DataWave}, o que constitui uma variável de confusão e uma limitação de
+validade externa.
+
+\nocite{nsa_github,nsa_ghidra,nsa_emissary,nsa_timely,nsa_datawave,nsa_fractalrabbit,nsa_lemongrenade,nsa_dwquery,nsa_dwaudit,nsa_dwauthz,nsa_ranklinkage}
+
+\textbf{Transparência:} quatro repositórios
+(\texttt{datawave}, \texttt{datawave-query-service},
+\texttt{datawave-audit-service} e
+\texttt{datawave-authorization-service}) pertencem ao mesmo ecossistema
+\emph{DataWave}, o que constitui uma variável de confusão e uma limitação de
+validade externa.
+
+\subsection{Abordagem estática (apenas clone, sem \textit{build})}
+Os repositórios foram \textbf{apenas clonados}; nenhum projeto foi compilado ou
+executado. Toda a \textit{stack} opera sobre o código-fonte e o histórico Git.
+
+\subsection{\textit{Pipeline} de extração}
+Adotou-se uma ferramenta canônica por dimensão, evitando dupla contagem
+(Tabela~\ref{tab:stack}):
+\begin{itemize}
+  \item \textbf{Alvo (SAST):} a \emph{união} de dois analisadores ---
+  Semgrep (\texttt{--config auto}) e CodeQL~\cite{codeql}
+  (\texttt{--build-mode=none}, suíte \texttt{java-security-extended}). Cada arquivo \texttt{.java} recebe
+  \texttt{has\_security\_risk}~$=1$ se \emph{qualquer} das duas ferramentas o
+  sinaliza ($\geq 1$ achado). A união maximiza \textit{recall} --- em segurança,
+  o falso-negativo é o pior erro;
+  \item \textbf{\textit{Features} estruturais e de qualidade:} complexidade e
+  estrutura via \textbf{SonarQube}~\cite{sonarqube} (fonte canônica, modo
+  \textit{source-only});
+  métricas CK (WMC, DIT, CBO, RFC, LCOM) e métricas de processo (PyDriller);
+  \item \textbf{Descritivo:} OSV (SCA de dependências) e segredos pela união de
+  Gitleaks e detect-secrets (deduplicada por arquivo/linha/tipo).
+\end{itemize}
+As contagens por ferramenta (\texttt{n\_semgrep}, \texttt{n\_codeql}) entram no
+\textit{dataset} apenas para análise de concordância e são \emph{excluídas} das
+\textit{features} do ML (anti-vazamento). O SonarQube fornece somente métricas
+estruturais: sem \textit{bytecode} ele não é oráculo de segurança Java, então
+suas regras de segurança não são usadas.
+
+\begin{table}[ht]
+\centering
+\caption{Mapeamento ferramenta $\rightarrow$ dimensão $\rightarrow$ ISO/IEC 25010.}
+\label{tab:stack}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Dimensão} & \textbf{Ferramenta} & \textbf{ISO/IEC 25010} \\
+\midrule
+SAST (alvo)        & Semgrep $\cup$ CodeQL    & Segurança (Integ./Confid./Autent.) \\
+Estrutura/complex. & SonarQube               & Manutenibilidade/Confiabilidade \\
+OO                 & CK                      & Manutenibilidade/Confiabilidade \\
+Processo           & PyDriller               & Manutenibilidade \\
+SCA (descritivo)   & OSV                     & Segurança $>$ Resistência \\
+Segredos (descr.)  & Gitleaks + detect-secrets & Segurança $>$ Confidencialidade \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Construção do \textit{dataset}}
+A unidade de análise é o arquivo, e o \emph{universo} considerado é a união dos
+arquivos com ao menos uma \textit{feature} extraível (estrutural, OO ou de
+processo); o rótulo de segurança é associado a esse universo por \emph{junção à
+esquerda}. Em consequência, arquivos sinalizados por SAST mas sem qualquer
+métrica de \textit{feature} (p.~ex.\ fontes não parseáveis pelo CK ou caminhos
+não indexados pelo SonarQube) ficam de fora: dos \textbf{645} arquivos brutos
+marcados pela união SAST, \textbf{560} (86,8\%) permanecem rotulados como
+positivos no \textit{dataset}. Consolidaram-se, por arquivo, o rótulo de
+segurança (união Semgrep~$\cup$~CodeQL) e as \textit{features} estruturais, de
+qualidade e de processo, totalizando \textbf{31.388 arquivos} e 41
+\textit{features}.
+
+\subsection{Prevenção de vazamento e desbalanceamento}
+Para evitar circularidade, \textbf{nenhuma \textit{feature} deriva do alvo}: as
+entradas vêm exclusivamente de estrutura, manutenibilidade, OO e processo ---
+dimensões distintas da que origina o rótulo; as contagens por ferramenta SAST
+ficam de fora. Como arquivos com risco são raros (1,8\%),
+a avaliação é liderada por \textbf{Precision, Recall, F1 e ROC-AUC} (não
+\textit{accuracy}); o desbalanceamento é tratado com
+\texttt{class\_weight="balanced"} e SMOTE \cite{smote2002} nos
+\textit{folds} de treino.
+
+\subsection{Validação e modelos}
+Usou-se \textbf{GroupKFold} agrupado por repositório, treinando em $N-1$
+repositórios e testando no restante, para medir generalização entre projetos.
+\textit{Folds} de teste de classe única são descartados de forma robusta.
+Comparam-se: Regressão Logística, Árvore de Decisão, \textit{Random Forest}
+\cite{breiman2001}, \textit{XGBoost} \cite{xgboost2016} e \textit{LightGBM}. A
+importância de \textit{features} é reportada pelo \textit{Random Forest}
+(impureza de Gini).
+
+% =====================================================================
+\section{Resultados e Discussão}
+% =====================================================================
+
+\subsection{Postura de segurança dos repositórios}
+A Tabela~\ref{tab:repos} resume a postura por repositório, com as contagens de
+cada SAST e os arquivos sinalizados pela união. A Figura~\ref{fig:kloc} mostra
+que repositórios menores de pesquisa (\texttt{fractalrabbit},
+\texttt{rank-based-linkage}) apresentam \emph{maior densidade} de achados por
+KLOC, enquanto \texttt{ghidra} e \texttt{datawave} concentram os maiores volumes
+absolutos (o CodeQL sozinho aporta 336 e 485 achados, respectivamente), com
+densidade relativamente baixa. As duas SAST são pouco redundantes: dos 560
+arquivos em risco, o Semgrep marca 211 e o CodeQL 369, com apenas 20 em comum
+--- evidência empírica que justifica a união.
+
+\begin{table}[ht]
+\centering
+\caption{Postura de segurança por repositório. \emph{Sem.}\ e \emph{CQL}\ contam
+\emph{achados} (não arquivos) de Semgrep e CodeQL --- por isso não são somáveis
+ao \emph{Risco}, que é o número de \emph{arquivos} sinalizados pela união
+Semgrep~$\cup$~CodeQL; \emph{CVEs}\ vêm do OSV e \emph{Segr.}\ de
+Gitleaks+detect-secrets.}
+\label{tab:repos}
+\scriptsize
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Repositório} & \textbf{Arq.\ Java} & \textbf{KLOC} & \textbf{Sem.} &
+\textbf{CQL} & \textbf{Risco} & \textbf{CVEs} & \textbf{Segr.} \\
+\midrule
+ghidra                         & 15589 & 2046.2 & 275 & 336 & 253 & 0  & 288 \\
+datawave                       & 4302  & 565.9  & 173 & 485 & 221 & 30 & 199 \\
+emissary                       & 676   & 67.4   & 12  & 110 & 45  & 0  & 32  \\
+timely                         & 359   & 31.1   & 20  & 23  & 19  & 1  & 28  \\
+datawave-query-service         & 54    & 14.0   & 5   & 66  & 6   & 0  & 2   \\
+datawave-authorization-service & 51    & 3.5    & 1   & 9   & 6   & 0  & 8   \\
+datawave-audit-service         & 48    & 7.7    & 1   & 15  & 4   & 0  & 5   \\
+lemongrenade                   & 110   & 13.9   & 5   & 0   & 3   & 9  & 1   \\
+fractalrabbit                  & 31    & 1.1    & 3   & 1   & 2   & 0  & 0   \\
+rank-based-linkage             & 34    & 1.6    & 3   & 0   & 1   & 0  & 0   \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{figuras/security_per_kloc.png}
+\caption{Densidade de achados de segurança por KLOC (Semgrep).}
+\label{fig:kloc}
+\end{figure}
+
+\subsection{Mapeamento às sub-características da Segurança (25010)}
+A Figura~\ref{fig:cwe} e a Tabela~\ref{tab:subchar} relacionam os achados às
+sub-características. Para a caracterização por CWE adota-se o Semgrep, cuja
+rotulagem CWE é consistente e diretamente mapeável às sub-características (o
+CodeQL emprega uma taxonomia mais granular e é usado para \emph{ampliar} o alvo
+do ML, não a descrição qualitativa). Predominam \emph{Integridade} (276 achados;
+CWE-470 reflexão insegura, CWE-89 injeção SQL, CWE-78 injeção de comando,
+CWE-502 desserialização) e \emph{Confidencialidade} (117; CWE-319 transmissão em
+texto claro, criptografia fraca). \emph{Autenticidade} aparece de forma
+minoritária (11; CWE-295 validação de certificado, CWE-798 credenciais
+embutidas). \emph{Resistência} é evidenciada por 40 CVEs em dependências diretas
+(OSV). \emph{Não-repúdio} e \emph{Responsabilização} não são mensuráveis
+estaticamente e são tratados como discussão qualitativa.
+
+\begin{table}[ht]
+\centering
+\caption{Cobertura das sub-características de Segurança (ISO/IEC 25010).}
+\label{tab:subchar}
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Sub-característica} & \textbf{Evidências} & \textbf{Fonte} \\
+\midrule
+Integridade        & 276 & Semgrep \\
+Confidencialidade  & 117 & Semgrep \\
+Autenticidade      & 11  & Semgrep \\
+Resistência (2023) & 40  & OSV (dependências) \\
+Não classificada   & 94  & Semgrep \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{figuras/cwe_distribution.png}
+\caption{Distribuição de CWE colorida por sub-característica da ISO/IEC 25010.}
+\label{fig:cwe}
+\end{figure}
+
+\subsection{Comparação dos modelos}
+A Tabela~\ref{tab:ml} e a Figura~\ref{fig:roc} apresentam os resultados sob
+\textit{GroupKFold}. Os modelos atingem \textbf{ROC-AUC entre 0,73 e 0,84},
+indicando que as métricas de qualidade ordenam arquivos arriscados acima da
+média --- isto é, carregam sinal discriminante. Os \textit{ensembles} de árvore
+lideram o ranqueamento (\textit{Random Forest} 0,84; LightGBM 0,83) e, com a
+\textit{stack} canônica, alcançam Precision substancialmente maior (até
+\textbf{0,48} no LightGBM) ao custo de Recall baixo; já a Regressão Logística
+(pesos balanceados) prioriza o \textbf{Recall (0,62)} ao preço de muitos falsos
+positivos. Os F1 permanecem baixos: é o comportamento esperado sob
+desbalanceamento extremo (1,8\%) e reforça a escolha de liderar a avaliação por
+ROC-AUC e Recall em vez de \textit{accuracy}.
+
+\begin{table}[ht]
+\centering
+\caption{Desempenho médio por modelo (GroupKFold por repositório).}
+\label{tab:ml}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Modelo} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC-AUC} \\
+\midrule
+Regressão Logística    & 0.105 & \textbf{0.621} & 0.174 & 0.773 \\
+Árvore de Decisão      & 0.108 & 0.339 & 0.154 & 0.731 \\
+\textit{Random Forest} & 0.346 & 0.107 & 0.140 & \textbf{0.837} \\
+XGBoost                & 0.396 & 0.109 & 0.136 & 0.795 \\
+LightGBM               & \textbf{0.482} & 0.118 & 0.156 & 0.835 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figuras/roc_curves.png}
+\caption{Curvas ROC dos cinco modelos (validação GroupKFold por repositório).}
+\label{fig:roc}
+\end{figure}
+
+\subsection{Importância das \textit{features} e leitura à luz da ISO/IEC 25010}
+A Figura~\ref{fig:imp} mostra a importância (Gini) do \textit{Random Forest}. As
+\textit{features} mais preditivas são de \textbf{complexidade}
+(\texttt{sonar\_cognitive\_complexity}, \texttt{sonar\_complexity}),
+\textbf{tamanho} (\texttt{sonar\_ncloc}, \texttt{sonar\_lines},
+\texttt{sonar\_statements}), \textbf{acoplamento/coesão OO} (\texttt{rfc},
+\texttt{wmc}), \textbf{dívida técnica} (\texttt{sonar\_sqale\_index}) e
+\textbf{processo} (\texttt{days\_since\_change}, \texttt{churn}). Esse ranking
+sustenta o argumento central do estudo:
+medidas de \emph{Manutenibilidade} e \emph{Confiabilidade} (no vocabulário da
+ISO/IEC~25010) são as que mais se associam à propensão a risco de
+\emph{Segurança} --- ou seja, arquivos grandes, complexos e fortemente acoplados
+tendem a concentrar achados de segurança, em linha com a literatura de predição
+de vulnerabilidades \cite{shin2011,walden2014}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figuras/feature_importance_rf.png}
+\caption{Importância das \textit{features} (\textit{Random Forest}, Gini).}
+\label{fig:imp}
+\end{figure}
+
+% =====================================================================
+\section{Conclusão}
+% =====================================================================
+
+Construiu-se um \textit{pipeline} estático e reprodutível que extrai métricas de
+qualidade e de segurança de 10 repositórios Java da NSA e treina modelos para
+prever arquivos propensos a risco de segurança, com as \textit{features}
+amarradas às características da ISO/IEC~25010. Os resultados (ROC-AUC até 0,84)
+indicam que métricas de \emph{Manutenibilidade}/\emph{Confiabilidade} carregam
+sinal preditivo sobre \emph{Segurança}, embora a classificação precisa seja
+difícil devido ao forte desbalanceamento.
+
+\textbf{Limitações:} (i)~\emph{Safety} não foi medida (nenhuma ferramenta o
+faz) e é tratada conceitualmente; (ii)~cobertura de testes está ausente, pois
+não houve execução; (iii)~a SCA cobre sobretudo dependências diretas (transitivas
+parciais sem \textit{build}); (iv)~o rótulo de segurança é uma aproximação por
+SAST de fonte, sujeita a falsos positivos/negativos; (v)~sem \textit{bytecode},
+o SonarQube não é oráculo de segurança Java --- por isso é usado apenas para
+métricas estruturais, e o alvo vem da união Semgrep~$\cup$~CodeQL; (vi)~a
+homogeneidade do ecossistema \emph{DataWave} (quatro repositórios) afeta a
+validade externa; (vii)~o rótulo restringe-se ao universo de arquivos com
+\textit{features} extraíveis (\emph{junção à esquerda}): cerca de 13\% dos
+arquivos brutos sinalizados por SAST não possuem métricas
+estruturais/OO/processo e são excluídos, o que pode introduzir viés caso essa
+exclusão não seja aleatória.
+
+\textbf{Trabalhos futuros:} explorar limiares de decisão calibrados por custo
+para melhorar Recall sob desbalanceamento; ampliar a amostra para organizações
+distintas; e incorporar a análise diferencial entre as duas SAST (a baixa
+sobreposição observada sugere perfis de detecção complementares).
+
+\section*{Disponibilidade}
+\textit{Scripts}, \textit{dataset} em nível de arquivo, dicionário de dados e
+versões das ferramentas estão documentados no repositório do projeto
+(\texttt{README.md}, \texttt{TOOLS\_VERSIONS.md},
+\texttt{dataset\_dictionary.md}), atendendo ao requisito de reprodutibilidade.
+
+\bibliographystyle{sbc}
+\bibliography{referencias}
+
+\end{document}

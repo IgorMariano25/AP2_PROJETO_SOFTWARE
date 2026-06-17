@@ -1,0 +1,13 @@
+# Artefatos de build do LaTeX (gerados na compilação; não versionar)
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+main.pdf

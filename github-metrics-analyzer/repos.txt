@@ -1,10 +1,12 @@
-iluwatar/java-design-patterns
-spring-projects/spring-boot
-doocs/advanced-java
-elastic/elasticsearch
+# NSA (NationalSecurityAgency) Java repositories
+
 NationalSecurityAgency/ghidra
-alibaba/nacos
-apache/cassandra
-TheAlgorithms/Java
-spring-projects/spring-framework
-termux/termux-app
+NationalSecurityAgency/emissary
+NationalSecurityAgency/timely
+NationalSecurityAgency/datawave
+NationalSecurityAgency/fractalrabbit
+NationalSecurityAgency/lemongrenade
+NationalSecurityAgency/datawave-query-service
+NationalSecurityAgency/datawave-audit-service
+NationalSecurityAgency/datawave-authorization-service
+NationalSecurityAgency/rank-based-linkage

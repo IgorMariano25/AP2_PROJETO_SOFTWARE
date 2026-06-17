@@ -54,6 +54,23 @@ CHARTS_DIR = REPORTS_DIR / "charts"
 REPOS_TXT = ROOT / "repos.txt"
 DB_PATH = ROOT / "metrics.db"
 
+# --------------------------------------------------------------------------- #
+# Temp directory redirection
+# --------------------------------------------------------------------------- #
+# The pipeline processes large repos (e.g. ghidra: 15k+ Java files, deep git
+# history). Tools like PyDriller (GitPython), Semgrep and git spawn subprocesses
+# that write to the system TEMP dir. On Windows that defaults to C:, which may be
+# small/full. We redirect TEMP/TMP to a project-local folder on the same volume
+# as the data (lots of free space) so heavy runs don't exhaust the system drive.
+# Subprocesses inherit os.environ, so git/semgrep/pydriller all follow suit.
+TMP_DIR = ROOT / ".tmp"
+TMP_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["TMP"] = str(TMP_DIR)
+os.environ["TEMP"] = str(TMP_DIR)
+os.environ["TMPDIR"] = str(TMP_DIR)  # POSIX convention (Git Bash, etc.)
+import tempfile as _tempfile  # noqa: E402
+_tempfile.tempdir = str(TMP_DIR)
+
 for _d in (REPOS_DIR, DATA_DIR, REPORTS_DIR, CHARTS_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
@@ -134,6 +151,50 @@ def command_exists(name: str) -> bool:
     """Check whether an executable is available on PATH."""
     from shutil import which
     return which(name) is not None
+
+
+# --------------------------------------------------------------------------- #
+# External heavy tools (not pip-installable, kept outside the repo)
+# --------------------------------------------------------------------------- #
+# Per the study prompt (§5-A), heavy binaries (CodeQL CLI, SonarScanner,
+# Gitleaks) live in the project-local ``developer-tools/`` folder (gitignored,
+# overridable via the DEVELOPER_TOOLS env var), not versioned in Git. We resolve
+# a tool by: explicit env override → PATH → a subfolder of the developer-tools
+# root. Returns the absolute path string or None so collectors can skip
+# gracefully when a tool is absent.
+DEVELOPER_TOOLS = Path(os.getenv("DEVELOPER_TOOLS", str(ROOT / "developer-tools")))
+
+
+def find_external_tool(env_var: str, exe_names: Iterable[str],
+                       subdirs: Iterable[str] = ()) -> Optional[str]:
+    """Locate an external binary.
+
+    Resolution order:
+      1. ``$<env_var>`` if set and points to an existing file.
+      2. Any of *exe_names* found on PATH.
+      3. ``DEVELOPER_TOOLS/<subdir>/<exe>`` (and a direct child) for each combo.
+    """
+    from shutil import which
+
+    override = os.getenv(env_var)
+    if override and Path(override).is_file():
+        return override
+
+    for exe in exe_names:
+        hit = which(exe)
+        if hit:
+            return hit
+
+    # Note: must match a FILE, not just an existing path — otherwise a tool
+    # SUBFOLDER named like the exe (e.g. E:\developer-tools\gitleaks) would be
+    # returned instead of the binary inside it.
+    roots = [DEVELOPER_TOOLS, *(DEVELOPER_TOOLS / s for s in subdirs)]
+    for root in roots:
+        for exe in exe_names:
+            for cand in (root / exe, root / "bin" / exe):
+                if cand.is_file():
+                    return str(cand)
+    return None
 
 
 # --------------------------------------------------------------------------- #
