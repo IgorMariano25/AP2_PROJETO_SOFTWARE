@@ -1,15 +1,15 @@
 # Relatório comparativo — Postura de segurança (ISO/IEC 25010)
 Estudo estático (apenas clone, sem build) de 10 repositórios Java da organização `NationalSecurityAgency`. Valores **brutos e normalizados por KLOC**. Métrica não coletável aparece como ausente/zero — nunca estimada.
 
-**Unidade de análise:** arquivo `.java`. **Total:** 31388 arquivos; **560 com risco de segurança** (1.78%).
+**Unidade de análise:** arquivo `.java`. **Total:** 31622 arquivos; **560 com risco de segurança** (1.77%).
 
 ## 1. Postura por repositório (bruto + por KLOC)
 | repositório | arquivos_java | KLOC_java | achados_seg | achados_por_KLOC | arquivos_em_risco | pct_risco | CVEs_diretos | CVSS_médio | segredos |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | ghidra | 15589 | 2046.2 | 275 | 0.13 | 253 | 1.09 | 0 | 0.0 | 288 |
-| datawave | 4302 | 565.9 | 173 | 0.31 | 221 | 3.74 | 30 | 0.0 | 199 |
+| datawave | 4302 | 565.9 | 173 | 0.31 | 221 | 3.61 | 30 | 0.0 | 201 |
 | timely | 359 | 31.1 | 20 | 0.64 | 19 | 2.42 | 1 | 0.0 | 28 |
-| emissary | 676 | 67.4 | 12 | 0.18 | 45 | 5.57 | 0 | 0.0 | 32 |
+| emissary | 676 | 67.4 | 12 | 0.18 | 45 | 5.39 | 0 | 0.0 | 32 |
 | lemongrenade | 110 | 13.9 | 5 | 0.36 | 3 | 1.79 | 9 | 0.0 | 1 |
 | datawave-query-service | 54 | 14.0 | 5 | 0.36 | 6 | 8.82 | 0 | 0.0 | 2 |
 | rank-based-linkage | 34 | 1.6 | 3 | 1.82 | 1 | 0.53 | 0 | 0.0 | 0 |
@@ -67,11 +67,11 @@ Estudo estático (apenas clone, sem build) de 10 repositórios Java da organiza�
 ## 5. Predição por ML (GroupKFold por repositório)
 | model | precision | recall | f1 | roc_auc | tp | fp | fn | tn |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| LogisticRegression | 0.1054 | 0.6212 | 0.1745 | 0.773 | 72.8 | 1226.2 | 39.2 | 4939.4 |
-| DecisionTree | 0.1078 | 0.3389 | 0.1538 | 0.7309 | 37.8 | 593.6 | 74.2 | 5572.0 |
-| RandomForest | 0.3458 | 0.1071 | 0.1399 | 0.8368 | 10.0 | 74.8 | 102.0 | 6090.8 |
-| XGBoost | 0.3963 | 0.1088 | 0.1363 | 0.7952 | 12.4 | 85.0 | 99.6 | 6080.6 |
-| LightGBM | 0.482 | 0.118 | 0.1556 | 0.8347 | 12.4 | 78.6 | 99.6 | 6087.0 |
+| LogisticRegression | 0.089 | 0.6442 | 0.155 | 0.7847 | 60.6 | 716.4 | 51.4 | 5496.0 |
+| DecisionTree | 0.0984 | 0.4083 | 0.1495 | 0.7187 | 37.2 | 295.4 | 74.8 | 5917.0 |
+| RandomForest | 0.3852 | 0.1655 | 0.1945 | 0.8594 | 16.2 | 50.8 | 95.8 | 6161.6 |
+| XGBoost | 0.3191 | 0.1361 | 0.1683 | 0.8201 | 14.2 | 28.4 | 97.8 | 6184.0 |
+| LightGBM | 0.3405 | 0.1209 | 0.1547 | 0.8374 | 14.2 | 33.2 | 97.8 | 6179.2 |
 
 > Avaliação liderada por **ROC-AUC/Recall/F1** (não accuracy), dado o forte desbalanceamento. Features: complexidade (lizard), OO (CK) e processo (PyDriller) — **nenhuma derivada do alvo** (anti-vazamento).
 

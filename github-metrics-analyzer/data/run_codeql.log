@@ -1,0 +1,132 @@
+13:39:58 [INFO] run_all: ============================================================
+13:39:58 [INFO] run_all: PHASE: codeql (collect_codeql_metrics)
+13:39:58 [INFO] run_all: ============================================================
+13:39:58 [INFO] codeql: Using CodeQL CLI: E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe
+13:39:58 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/datawave ...
+13:39:58 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__datawave --overwrite
+14:00:41 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/datawave with java-security-extended.qls ...
+14:00:41 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave.sarif --rerun
+14:00:47 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave.sarif --rerun
+14:19:33 [INFO] codeql:   485 findings in NationalSecurityAgency/datawave
+14:19:34 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/datawave-audit-service ...
+14:19:34 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-audit-service --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__datawave-audit-service --overwrite
+14:22:28 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/datawave-audit-service with java-security-extended.qls ...
+14:22:28 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-audit-service java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave-audit-service.sarif --rerun
+14:22:32 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-audit-service java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave-audit-service.sarif --rerun
+14:23:39 [INFO] codeql:   15 findings in NationalSecurityAgency/datawave-audit-service
+14:23:40 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/datawave-authorization-service ...
+14:23:40 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-authorization-service --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__datawave-authorization-service --overwrite
+14:26:40 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/datawave-authorization-service with java-security-extended.qls ...
+14:26:40 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-authorization-service java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave-authorization-service.sarif --rerun
+14:26:43 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-authorization-service java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave-authorization-service.sarif --rerun
+14:27:56 [INFO] codeql:   9 findings in NationalSecurityAgency/datawave-authorization-service
+14:27:56 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/datawave-query-service ...
+14:27:56 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-query-service --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__datawave-query-service --overwrite
+14:30:22 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/datawave-query-service with java-security-extended.qls ...
+14:30:22 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-query-service java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave-query-service.sarif --rerun
+14:30:25 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__datawave-query-service java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__datawave-query-service.sarif --rerun
+14:31:29 [INFO] codeql:   66 findings in NationalSecurityAgency/datawave-query-service
+14:31:29 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/emissary ...
+14:31:29 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__emissary --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__emissary --overwrite
+14:33:46 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/emissary with java-security-extended.qls ...
+14:33:46 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__emissary java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__emissary.sarif --rerun
+14:33:49 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__emissary java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__emissary.sarif --rerun
+14:35:40 [INFO] codeql:   110 findings in NationalSecurityAgency/emissary
+14:35:40 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/fractalrabbit ...
+14:35:40 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__fractalrabbit --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__fractalrabbit --overwrite
+14:36:23 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/fractalrabbit with java-security-extended.qls ...
+14:36:23 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__fractalrabbit java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__fractalrabbit.sarif --rerun
+14:36:26 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__fractalrabbit java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__fractalrabbit.sarif --rerun
+14:37:10 [INFO] codeql:   1 findings in NationalSecurityAgency/fractalrabbit
+14:37:10 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/ghidra ...
+14:37:10 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__ghidra --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__ghidra --overwrite
+14:58:44 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/ghidra with java-security-extended.qls ...
+14:58:44 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__ghidra java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__ghidra.sarif --rerun
+14:58:47 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__ghidra java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__ghidra.sarif --rerun
+15:45:22 [INFO] codeql:   336 findings in NationalSecurityAgency/ghidra
+15:45:23 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/lemongrenade ...
+15:45:23 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__lemongrenade --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__lemongrenade --overwrite
+15:46:19 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/lemongrenade with java-security-extended.qls ...
+15:46:19 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__lemongrenade java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__lemongrenade.sarif --rerun
+15:46:22 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__lemongrenade java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__lemongrenade.sarif --rerun
+15:47:09 [INFO] codeql:   0 findings in NationalSecurityAgency/lemongrenade
+15:47:10 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/rank-based-linkage ...
+15:47:10 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__rank-based-linkage --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__rank-based-linkage --overwrite
+15:47:43 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/rank-based-linkage with java-security-extended.qls ...
+15:47:43 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__rank-based-linkage java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__rank-based-linkage.sarif --rerun
+15:47:46 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__rank-based-linkage java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__rank-based-linkage.sarif --rerun
+15:48:27 [INFO] codeql:   0 findings in NationalSecurityAgency/rank-based-linkage
+15:48:28 [INFO] codeql: CodeQL: creating database for NationalSecurityAgency/timely ...
+15:48:28 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database create E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__timely --language=java --build-mode=none --source-root=E:\AP2-Projeto-ES\github-metrics-analyzer\repos\NationalSecurityAgency__timely --overwrite
+15:50:10 [INFO] codeql: CodeQL: analysing NationalSecurityAgency/timely with java-security-extended.qls ...
+15:50:10 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__timely java-queries:codeql-suites/java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__timely.sarif --rerun
+15:50:14 [INFO] codeql:   $ E:\AP2-Projeto-ES\github-metrics-analyzer\developer-tools\codeql\codeql.exe database analyze E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_db_NationalSecurityAgency__timely java-security-extended.qls --format=sarifv2.1.0 --output=E:\AP2-Projeto-ES\github-metrics-analyzer\.tmp\codeql_NationalSecurityAgency__timely.sarif --rerun
+15:51:16 [INFO] codeql:   23 findings in NationalSecurityAgency/timely
+15:51:16 [INFO] codeql: Wrote 1045 finding rows to codeql_findings.csv
+15:51:16 [INFO] codeql: Files with CodeQL findings: 369  |  Severity: {'WARNING': 442, 'ERROR': 603}
+15:51:16 [INFO] run_all: Phase 'codeql' finished in 7878.0s
+15:51:16 [INFO] run_all: ============================================================
+15:51:16 [INFO] run_all: PHASE: dataset (build_security_dataset)
+15:51:16 [INFO] run_all: ============================================================
+15:51:17 [INFO] dataset: Loaded semgrep_findings.csv: 498 rows, 6 cols
+15:51:17 [INFO] dataset: Loaded codeql_findings.csv: 1045 rows, 6 cols
+15:51:17 [INFO] dataset: Loaded sonarqube.csv: 22949 rows, 22 cols
+15:51:17 [INFO] dataset: Loaded complexity.csv: 233821 rows, 8 cols
+15:51:17 [INFO] dataset: Loaded ck_metrics.csv: 5530 rows, 16 cols
+15:51:18 [INFO] dataset: Loaded pydriller_metrics.csv: 29927 rows, 9 cols
+15:51:18 [INFO] dataset: Loaded loc.csv: 10 rows, 9 cols
+15:51:18 [INFO] dataset: Structural feature source: sonarqube
+15:51:18 [INFO] dataset: Universe: 31622 (repository, file) pairs
+15:51:18 [INFO] dataset: Dropped 0 rows with all-NaN features (kept 31622)
+15:51:18 [INFO] dataset: Dataset: 31622 files  |  positive (risk)=560 (1.8%)  negative=31062
+15:51:19 [INFO] dataset: Wrote security_dataset.csv (31622 rows × 46 cols)
+15:51:19 [INFO] dataset: Wrote dataset_dictionary.md
+15:51:19 [INFO] run_all: Phase 'dataset' finished in 3.2s
+15:51:19 [INFO] run_all: ============================================================
+15:51:19 [INFO] run_all: PHASE: ml (ml_security_pipeline)
+15:51:19 [INFO] run_all: ============================================================
+15:51:20 [INFO] ml: Loaded dataset: 31622 rows × 46 cols
+15:51:20 [INFO] ml: Features: 41  |  Positive labels: 560 / 31622  (1.8%)
+15:51:20 [INFO] ml: Starting GroupKFold cross-validation (10 repos)...
+15:51:22 [INFO] ml: Fold 1 — test repos: ['NationalSecurityAgency/ghidra']  (train=8467 test=23155 pos_test=253)
+15:51:30 [INFO] ml: Fold 2 — test repos: ['NationalSecurityAgency/datawave']  (train=25507 test=6115 pos_test=221)
+15:51:41 [INFO] ml: Fold 3 — test repos: ['NationalSecurityAgency/emissary']  (train=30787 test=835 pos_test=45)
+15:51:54 [INFO] ml: Fold 4 — test repos: ['NationalSecurityAgency/timely']  (train=30836 test=786 pos_test=19)
+15:52:07 [INFO] ml: Fold 5 — test repos: ['NationalSecurityAgency/datawave-audit-service'
+ 'NationalSecurityAgency/datawave-authorization-service'
+ 'NationalSecurityAgency/datawave-query-service'
+ 'NationalSecurityAgency/fractalrabbit'
+ 'NationalSecurityAgency/lemongrenade'
+ 'NationalSecurityAgency/rank-based-linkage']  (train=30891 test=731 pos_test=22)
+15:52:20 [INFO] ml: 
+             model  precision  recall     f1  roc_auc   tp    fp   fn     tn
+LogisticRegression     0.0890  0.6442 0.1550   0.7847 60.6 716.4 51.4 5496.0
+      DecisionTree     0.0984  0.4083 0.1495   0.7187 37.2 295.4 74.8 5917.0
+      RandomForest     0.3852  0.1655 0.1945   0.8594 16.2  50.8 95.8 6161.6
+           XGBoost     0.3191  0.1361 0.1683   0.8201 14.2  28.4 97.8 6184.0
+          LightGBM     0.3405  0.1209 0.1547   0.8374 14.2  33.2 97.8 6179.2
+15:52:20 [INFO] ml: Saved ml_results.csv and ml_confusions.csv
+15:52:20 [INFO] ml: Saved roc_curves.png
+15:52:21 [INFO] ml: Saved model_comparison.png
+15:52:22 [INFO] ml: Saved feature_importance_rf.png
+15:57:37 [INFO] ml: Saved shap_summary.png
+15:57:37 [INFO] ml: ML pipeline complete.
+15:57:37 [INFO] ml: ============================================================
+15:57:37 [INFO] ml: RESULTS SUMMARY
+15:57:37 [INFO] ml: ============================================================
+15:57:37 [INFO] ml: LogisticRegression      F1=0.155  ROC-AUC=0.785  P=0.089  R=0.644
+15:57:37 [INFO] ml: DecisionTree            F1=0.149  ROC-AUC=0.719  P=0.098  R=0.408
+15:57:37 [INFO] ml: RandomForest            F1=0.195  ROC-AUC=0.859  P=0.385  R=0.166
+15:57:37 [INFO] ml: XGBoost                 F1=0.168  ROC-AUC=0.820  P=0.319  R=0.136
+15:57:37 [INFO] ml: LightGBM                F1=0.155  ROC-AUC=0.837  P=0.341  R=0.121
+15:57:37 [INFO] run_all: Phase 'ml' finished in 378.1s
+15:57:37 [INFO] run_all: ============================================================
+15:57:37 [INFO] run_all: PHASE: report (generate_comparative_report)
+15:57:37 [INFO] run_all: ============================================================
+15:57:38 [INFO] report: Saved security_per_kloc.png
+15:57:38 [INFO] report: Saved cwe_distribution.png
+15:57:38 [INFO] report: Saved posture_heatmap.png
+15:57:38 [INFO] report: Wrote E:\AP2-Projeto-ES\github-metrics-analyzer\reports\comparative_report.md
+15:57:38 [INFO] report: Wrote comparative_per_repo.csv and comparative_cwe.csv
+15:57:38 [INFO] run_all: Phase 'report' finished in 1.1s
+15:57:38 [INFO] run_all: Pipeline completed successfully.

@@ -120,9 +120,16 @@ Copy-Item .env.example .env    # edite e preencha GITHUB_TOKEN, SONAR_HOST_URL, 
 python scripts/run_all.py
 #    repos já clonados:        python scripts/run_all.py --skip clone
 #    apenas algumas fases:     python scripts/run_all.py --only sonarqube,codeql,dataset,ml
+
+# 6. Rodar SOMENTE o Machine Learning (dataset já gerado)
+python scripts/run_all.py --only ml
+#    ou, diretamente o módulo:
+python scripts/ml_security_pipeline.py
+#    (pré-requisito: data/security_dataset.csv já existe;
+#     se não, gere antes com:  python scripts/run_all.py --only dataset)
 ```
 
-Fonte: `README.md`, `setup_dev_tools.ps1`, `run_all.py`.
+Fonte: `README.md`, `setup_dev_tools.ps1`, `run_all.py`, `ml_security_pipeline.py`.
 
 ---
 
@@ -400,10 +407,231 @@ são **independentes** (só precisam dos clones); os 3 últimos são **derivados
 | `osv_summary.csv` | `repository, deps_declared, deps_queryable, vulns_direct, vulns_critical, vulns_high, vulns_medium, vulns_low, avg_cvss` | SCA por repo (descritivo) |
 | `secrets_findings.csv` | `repository, file, secret_type, line_number, detected_by` | segredos por achado (descritivo) |
 | `secrets_summary.csv` | `repository, files_with_secrets, total_secrets, by_gitleaks, by_detect_secrets, by_both, types` | segredos por repo (descritivo) |
-| `security_dataset.csv` | `repository, file, n_semgrep, n_codeql, has_security_risk` + 20 colunas `sonar_*` + 15 OO (CK) + 7 de processo (PyDriller) | **entrada do ML** (alvo + features) |
+| `security_dataset.csv` | `repository, file, n_semgrep, n_codeql, has_security_risk` + 20 colunas `sonar_*` + 14 OO (CK) + 7 de processo (PyDriller) | **entrada do ML** (alvo + features) |
 
 > O significado de cada coluna está nas tabelas da Seção 7. O dicionário
 > completo gerado pelo pipeline está em `data/dataset_dictionary.md`.
+
+---
+
+## 9. Machine Learning — em detalhe (`ml_security_pipeline.py`)
+
+Esta é a etapa que responde à **pergunta de pesquisa** declarada no topo do
+script:
+
+> *"Métricas de qualidade de código (complexidade, duplicação, code smells,
+> métricas de processo e métricas OO) conseguem **prever** quais arquivos `.java`
+> são propensos a risco de segurança?"*
+
+Ou seja: o ML **não** olha para o conteúdo de segurança do arquivo. Ele tenta
+descobrir se *características de qualidade/estrutura/histórico* (que **não** têm
+nada a ver com segurança) são suficientes para **antecipar** que um arquivo será
+sinalizado pelos SAST. Se conseguir, validamos a hipótese (central na norma ISO/
+IEC 25010) de que **manutenibilidade ruim correlaciona com risco de segurança**.
+
+### 9.1 A métrica-alvo (target) e por que foi escolhida
+
+| Item | Valor |
+|---|---|
+| **Coluna alvo** | `has_security_risk` (binária: 0 ou 1) |
+| **Como é definida** | `1` se o arquivo foi sinalizado pelo **Semgrep OU pelo CodeQL** (**união**); `0` caso contrário |
+| **Tipo de problema** | Classificação binária |
+| **Dimensão ISO/IEC 25010** | **Segurança** (*Security*) |
+
+**Por que esse alvo?**
+
+1. **Mapeia direto para a dimensão "Segurança" da ISO/IEC 25010** — é a
+   característica de qualidade que o estudo quer prever; as demais métricas
+   (manutenibilidade, confiabilidade) viram *features*.
+2. **União (Semgrep ∪ CodeQL) e não interseção** — escolha deliberada para
+   **maximizar o recall**. Em segurança, o pior erro é o **falso-negativo**
+   (deixar passar um arquivo arriscado). Marcar como "arriscado" se *qualquer*
+   uma das duas ferramentas SAST apontar reduz a chance de "esquecer" um arquivo
+   de verdade perigoso (documentado em `build_security_dataset.py`, cabeçalho).
+3. **Dois SAST independentes** (Semgrep e CodeQL) dão robustez: as colunas
+   `n_semgrep` e `n_codeql` ficam no dataset **só para análise de concordância**
+   entre as ferramentas — **não** entram como features (ver anti-vazamento).
+
+### 9.2 As features selecionadas (o que o modelo "vê")
+
+O script monta a matriz de features assim (`prepare()`):
+*todas as colunas, menos as de identificação/alvo, mantendo só as numéricas.*
+
+```python
+SKIP_COLS = {"repository", "file", "has_security_risk", "n_semgrep", "n_codeql"}
+feature_cols = [c numérica  para c em colunas  se c não está em SKIP_COLS]
+X = df[feature_cols].fillna(0)        # NaN → 0
+y = df["has_security_risk"]
+groups = df["repository"]             # usado pelo GroupKFold
+```
+
+Resultado: **41 features numéricas**, organizadas em 3 famílias, todas mapeadas à
+ISO/IEC 25010 (detalhe coluna-a-coluna na Seção 7 e em `dataset_dictionary.md`):
+
+| Família | Nº | Origem | Dimensão ISO 25010 | Exemplos |
+|---|---|---|---|---|
+| Estruturais | **20** | SonarQube (`sonar_*`) | Manutenibilidade | `sonar_complexity`, `sonar_cognitive_complexity`, `sonar_code_smells`, `sonar_sqale_index`, `sonar_duplicated_lines_density` |
+| Orientação a objetos | **14** | CK | Manutenibilidade / Confiabilidade | `wmc`, `cbo`, `rfc`, `lcom`, `dit`, `tcc` |
+| Processo (histórico git) | **7** | PyDriller | Manutenibilidade | `commits`, `distinct_authors`, `churn`, `file_age_days`, `days_since_change` |
+
+> **Regra anti-vazamento (anti-leakage), declarada no código:** **nenhuma**
+> métrica derivada de segurança pode ser feature. Por isso (a) `n_semgrep`/
+> `n_codeql` são excluídas (seriam circulares — derivam do próprio alvo), e (b)
+> as medidas de *segurança* do SonarQube **nunca são coletadas**. O modelo só
+> enxerga qualidade/estrutura/processo — jamais "pistas" do alvo. Sem isso, os
+> resultados seriam artificialmente perfeitos e cientificamente inválidos.
+
+### 9.3 O dataset em números (estado atual)
+
+| Métrica | Valor real |
+|---|---|
+| Linhas (arquivos `.java`) | **31.622** |
+| Repositórios (grupos) | **10** (NSA) |
+| Positivos (`has_security_risk=1`) | **560** |
+| Taxa de positivos | **≈ 1,77 %** → **fortemente desbalanceado** |
+| Features | **41 numéricas** |
+
+> Os repositórios têm tamanhos muito diferentes (ghidra ≈ 23,1 mil arquivos;
+> datawave ≈ 6,1 mil; os menores com < 200). Isso reforça a necessidade de
+> validar **por repositório** (Seção 9.4), e não por arquivo solto.
+
+### 9.4 Como o modelo é treinado e como se separam treino e teste
+
+Este é o ponto metodológico mais importante e responde diretamente à pergunta
+*"como ocorreu a separação entre dados de teste e dados reais?"*.
+
+**Não há um *split* aleatório 70/30.** A validação usa
+**`GroupKFold(n_splits=5)` agrupado por repositório** (`cross_validate()`):
+
+```
+GroupKFold (5 dobras), agrupado por "repository"
+┌─────────────────────────────────────────────────────────────┐
+│ Dobra k:  treina nos arquivos de  N-1 repositórios            │
+│           testa  nos arquivos do(s) repositório(s) restante(s)│
+│           → um repositório NUNCA aparece em treino e teste    │
+│             ao mesmo tempo                                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Por que agrupar por repositório (e não dividir arquivos aleatoriamente)?**
+Para **impedir vazamento de informação intra-repositório**. Arquivos do mesmo
+projeto compartilham estilo, autores e padrões; se uns fossem para treino e
+outros (do mesmo repo) para teste, o modelo "decoraria" o projeto e o resultado
+seria otimista demais. Testando em um **repositório inteiro nunca visto**, mede-se
+a capacidade real de **generalizar para um projeto novo** — que é o uso prático.
+
+**Sobre "dados de teste × dados reais":** a dobra de teste é sempre composta de
+**arquivos reais, intocados** — nenhuma amostra sintética entra na avaliação. O
+único dado artificial do pipeline é o **SMOTE**, aplicado **exclusivamente na
+dobra de treino** (ver abaixo). Portanto: **treino = reais + sintéticos (SMOTE);
+teste = 100 % reais**. O script ainda **pula** qualquer dobra cujo conjunto de
+teste tenha só uma classe (sem positivos não dá para medir).
+
+**Sequência exata dentro de cada dobra** (`cross_validate`):
+
+1. **Separação** treino/teste pelos índices que o `GroupKFold` devolve.
+2. **Padronização** (`StandardScaler`): ajustada **só no treino** e aplicada ao
+   teste (evita vazamento de escala). Usada **apenas** pela Regressão Logística;
+   os modelos de árvore usam os dados sem escalonar.
+3. **Balanceamento com SMOTE** (`imbalanced-learn`): gera positivos sintéticos
+   **só no treino** (`k_neighbors = min(5, nº_positivos − 1)`), nunca no teste.
+   Em conjunto com `class_weight="balanced"` nos modelos, ataca o desbalanceamento
+   de 1,77 %.
+4. **Treino e predição** de cada um dos 5 modelos; coleta de probabilidades
+   (`predict_proba`) para a curva ROC.
+5. **Métricas da dobra**: precisão, recall, F1, ROC-AUC e a matriz de confusão
+   (TP/FP/FN/TN).
+
+Ao final, as métricas das 5 dobras são **promediadas** por modelo
+(`aggregate_results`) → `reports/ml_results.csv`.
+
+### 9.5 Os 5 modelos comparados (`build_models`)
+
+Todos com `random_state=42` (reprodutível) e tratamento de classe desbalanceada:
+
+| Modelo | Hiperparâmetros principais | Desbalanceamento | Escalona? |
+|---|---|---|---|
+| **LogisticRegression** | `max_iter=1000` | `class_weight="balanced"` | **Sim** (StandardScaler) |
+| **DecisionTree** | `max_depth=10` | `class_weight="balanced"` | Não |
+| **RandomForest** | `n_estimators=200` | `class_weight="balanced"` | Não |
+| **XGBoost** | `n_estimators=200`, `eval_metric="logloss"` | (boosting) | Não |
+| **LightGBM** | `n_estimators=200` | `class_weight="balanced"` | Não |
+
+### 9.6 Métricas de avaliação — e por que **não** usamos *accuracy*
+
+Com apenas 1,77 % de positivos, um classificador que dissesse "**nenhum** arquivo
+é arriscado" acertaria ≈ 98 % — *accuracy* alta e **inútil**. Por isso o estudo
+mede (docstring do script):
+
+- **Recall** — dos arquivos realmente arriscados, quantos o modelo pega (o que
+  mais importa em segurança).
+- **Precision** — dos que o modelo aponta, quantos são de fato arriscados.
+- **F1** — média harmônica de precisão e recall.
+- **ROC-AUC** — poder de ranqueamento independente de limiar (a métrica
+  principal de comparação entre modelos).
+
+### 9.7 Resultados atuais (`reports/ml_results.csv`, média das dobras)
+
+| Modelo | Precision | Recall | F1 | **ROC-AUC** |
+|---|---|---|---|---|
+| LogisticRegression | 0,089 | **0,644** | 0,155 | 0,785 |
+| DecisionTree | 0,098 | 0,408 | 0,150 | 0,719 |
+| **RandomForest** | 0,385 | 0,166 | **0,195** | **0,859** |
+| XGBoost | 0,319 | 0,136 | 0,168 | 0,820 |
+| LightGBM | 0,341 | 0,121 | 0,155 | 0,837 |
+
+**Leitura para a banca:**
+- **RandomForest é o melhor modelo geral** (ROC-AUC ≈ **0,859** e maior F1) —
+  ROC-AUC bem acima de 0,5 (acaso) **confirma** que as métricas de qualidade
+  **têm sim poder preditivo** sobre risco de segurança.
+- A **Regressão Logística** entrega o **maior recall** (0,64): pega mais arquivos
+  arriscados, ao custo de muitos falsos-positivos (precisão baixa) — útil se o
+  objetivo for "não deixar passar nada" para triagem manual.
+- Os valores absolutos de F1/precision são modestos — esperado num problema
+  **raro (1,77 %) e validado entre projetos diferentes** (cenário propositalmente
+  difícil e honesto, sem vazamento).
+
+### 9.8 Interpretabilidade — quais features pesam mais
+
+Após a validação cruzada, o script treina **um RandomForest no dataset inteiro**
+(`rf_full`) só para explicar o modelo, e gera dois artefatos:
+
+- **Importância de Gini** (`charts/feature_importance_rf.png`) — top 20 features
+  por ganho de impureza no RF.
+- **SHAP** (`charts/shap_summary.png`) — `TreeExplainer` sobre uma amostra de até
+  2000 arquivos; mostra *direção* e *magnitude* do efeito de cada feature na
+  predição (beeswarm), bem mais informativo que o Gini.
+
+### 9.9 Saídas geradas pela etapa de ML
+
+| Arquivo | O que contém |
+|---|---|
+| `reports/ml_results.csv` | Métricas agregadas (média das dobras) por modelo — tabela da Seção 9.7 |
+| `reports/ml_confusions.csv` | Matriz de confusão (TP/FP/FN/TN) **por dobra e por modelo** (25 linhas = 5 modelos × 5 dobras) |
+| `reports/charts/roc_curves.png` | Curvas ROC de todos os modelos (dobras concatenadas) |
+| `reports/charts/model_comparison.png` | Barras comparando F1 e ROC-AUC |
+| `reports/charts/feature_importance_rf.png` | Top 20 features (Gini, RandomForest) |
+| `reports/charts/shap_summary.png` | Resumo SHAP (beeswarm) do RandomForest |
+
+### 9.10 Como rodar **somente** o Machine Learning
+
+```powershell
+# Opção A — pelo orquestrador (recomendado)
+python scripts/run_all.py --only ml
+
+# Opção B — direto o módulo
+python scripts/ml_security_pipeline.py
+
+# Pré-requisito: data/security_dataset.csv já deve existir.
+# Se ainda não foi gerado (ou as coletas mudaram), gere antes:
+python scripts/run_all.py --only dataset
+# Encadeado (dataset + ml de uma vez):
+python scripts/run_all.py --only dataset,ml
+```
+
+Ao terminar, confira `reports/ml_results.csv` e as imagens em
+`reports/charts/`. O resumo dos modelos também é impresso no log
+(`_print_summary`).
 
 ---
 

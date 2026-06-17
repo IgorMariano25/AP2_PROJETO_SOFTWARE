@@ -29,6 +29,7 @@ import csv
 import json
 import os
 import shutil
+import stat
 import subprocess
 from pathlib import Path
 
@@ -48,6 +49,29 @@ SUITE = os.getenv("CODEQL_SUITE", "java-security-extended.qls")
 # wrapper; subprocess on Windows must invoke the .exe.
 _CODEQL = find_external_tool("CODEQL_CLI", ("codeql.exe", "codeql"),
                              subdirs=("codeql",))
+
+
+def _force_rmtree(path: Path) -> None:
+    """Remove a directory tree, defeating Windows read-only files.
+
+    CodeQL databases contain read-only files; a plain shutil.rmtree raises
+    PermissionError on Windows and, with ignore_errors=True, leaves an orphan
+    `db-java` dir behind. The next run's `--overwrite` then refuses ("does not
+    appear to be a CodeQL database or database cluster"). The onexc handler
+    clears the read-only bit and retries so cleanup actually succeeds.
+    """
+    def _on_error(func, p, _exc):
+        try:
+            os.chmod(p, stat.S_IWRITE)
+            func(p)
+        except OSError:
+            pass
+
+    # onexc (3.12+) supersedes the deprecated onerror; pass both for safety.
+    try:
+        shutil.rmtree(path, onexc=_on_error)  # type: ignore[call-arg]
+    except TypeError:
+        shutil.rmtree(path, onerror=lambda f, p, e: _on_error(f, p, e))
 
 
 def _run(cmd: list[str], timeout: int) -> subprocess.CompletedProcess | None:
@@ -70,7 +94,7 @@ def analyze_repo(repo: Path) -> list[dict]:
 
     # Fresh DB each run (idempotent); CodeQL refuses to overwrite a non-empty dir.
     if db_dir.exists():
-        shutil.rmtree(db_dir, ignore_errors=True)
+        _force_rmtree(db_dir)
 
     log.info("CodeQL: creating database for %s ...", name)
     created = _run(
@@ -105,7 +129,7 @@ def analyze_repo(repo: Path) -> list[dict]:
     rows = _parse_sarif(sarif, name)
     log.info("  %d findings in %s", len(rows), name)
     # Clean up the (potentially large) DB; keep SARIF for audit under .tmp.
-    shutil.rmtree(db_dir, ignore_errors=True)
+    _force_rmtree(db_dir)
     return rows
 
 

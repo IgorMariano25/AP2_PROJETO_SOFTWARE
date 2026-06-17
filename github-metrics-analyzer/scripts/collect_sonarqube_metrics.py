@@ -23,6 +23,9 @@ Configuration (env / .env):
   SONAR_HOST_URL   default http://localhost:9000
   SONAR_TOKEN      analysis + API token (required)
   SONARSCANNER_CLI optional explicit path to the sonar-scanner executable
+  SONAR_PYTHON_VERSION  Python version reported to the analyzer (default 3.12);
+                        avoids the "analyzed as compatible with all Python 3
+                        versions" warning when repos carry .py helper files.
 
 The SonarScanner CLI is a heavy external binary (not pip), resolved via
 SONARSCANNER_CLI, PATH, or E:\\developer-tools\\sonar-scanner.
@@ -46,6 +49,7 @@ log = get_logger("sonarqube")
 
 SONAR_HOST = os.getenv("SONAR_HOST_URL", "http://localhost:9000").rstrip("/")
 SONAR_TOKEN = os.getenv("SONAR_TOKEN", "")
+SONAR_PYTHON_VERSION = os.getenv("SONAR_PYTHON_VERSION", "3.12")
 
 # Structural metrics only (no security-derived measures → no ML leakage).
 METRIC_KEYS = [
@@ -84,6 +88,13 @@ def _run_scanner(repo: Path, project_key: str) -> bool:
     # sonar.java.binaries is mandatory for the Java analyzer; in a no-build
     # study we point it at the sources themselves so AST-based metrics still
     # compute. Security/bug rules that need bytecode simply won't fire (§9.1).
+    #
+    # sonar.java.libraries points at any .jar bundled in the repo so the
+    # analyzer has a (best-effort) classpath; in a no-build study there are
+    # usually none, but supplying the property silences the "libraries were
+    # not provided / property is empty" warning. sonar.python.version pins the
+    # Python edition for the few .py helpers some repos ship, removing the
+    # "compatible with all Python 3 versions" warning.
     cmd = (
         f'"{_SCANNER}" '
         f'-Dsonar.host.url={SONAR_HOST} '
@@ -92,6 +103,8 @@ def _run_scanner(repo: Path, project_key: str) -> bool:
         f'-Dsonar.projectName={project_key} '
         f'-Dsonar.sources="{repo}" '
         f'-Dsonar.java.binaries="{repo}" '
+        f'-Dsonar.java.libraries="{repo}/**/*.jar" '
+        f'-Dsonar.python.version={SONAR_PYTHON_VERSION} '
         f'-Dsonar.exclusions="**/*.jar,**/.git/**" '
         f'-Dsonar.scm.disabled=true '
         f'-Dsonar.sourceEncoding=UTF-8'
