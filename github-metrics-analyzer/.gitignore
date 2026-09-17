@@ -34,3 +34,4 @@ secrets.json
 data_nsa/
 reports_nsa/
 repos_nsa/
+data_nsa_stale/

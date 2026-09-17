@@ -19,11 +19,18 @@ retomado em outro dia.
 
 `semgrep` → `codeql` → `pydriller` → `ck` → `osv` → `secrets` → `dataset` → `ml` → `report`
 
-> **Atenção:** os CSVs dessas 9 fases ainda contêm os dados do **corpus NSA
-> antigo** (ver §5). Eles são sobrescritos por inteiro quando cada fase roda —
-> nenhum está corrompido ou pela metade, porque cada coletor só grava o CSV
-> ao terminar. Mas **não misture** esses arquivos com os 4 já regerados acima
-> antes de rodar as fases que faltam.
+`data/` contém **apenas dados do Corpus 2**. Os 9 CSVs dessas fases, que ainda
+tinham os dados da NSA, foram movidos para `data_nsa_stale/` — não apagados.
+
+> **Por que isso importa se você rodar por etapas.** O universo de linhas do
+> dataset é a **união** dos pares `(repository, file)` de todas as tabelas de
+> features ([`build_security_dataset.py:197-202`](scripts/build_security_dataset.py#L197-L202)),
+> não uma lista fixa de repositórios. Se a fase `dataset` rodasse com
+> `ck_metrics.csv` e `pydriller_metrics.csv` ainda cheios de linhas da NSA,
+> esses arquivos entrariam no `security_dataset.csv` misturados aos novos — e
+> sobreviveriam ao filtro da linha 251, porque têm features preenchidas.
+> Com os CSVs antigos fora de `data/`, uma execução prematura de `dataset`
+> apenas produz menos dados, em vez de misturar os dois corpora.
 
 ---
 
@@ -95,6 +102,13 @@ Nada foi perdido. Três cópias:
 - **`data_nsa/` e `reports_nsa/`** — cópias locais (gitignored, já que o git guarda o conteúdo).
 - **`repos_nsa/`** — os 10 clones da NSA, movidos para fora de `repos/` para que
   os coletores não os varram. A lista original está em `repos_nsa.txt`.
+- **`data_nsa_stale/`** — os 9 CSVs da NSA que ocupavam `data/` e ainda não
+  haviam sido regerados (ver §2). Duplicam o conteúdo de `data_nsa/`; existem
+  só para deixar `data/` contendo exclusivamente o Corpus 2.
+
+**Não é necessário reexecutar nada do corpus NSA** — os resultados dele estão
+completos e preservados. As fases pendentes rodam exclusivamente sobre os 10
+repositórios novos.
 
 Os coletores iteram sobre os diretórios em `repos/`, **não** sobre o
 `repos.txt` — por isso mover os clones foi necessário, e não bastou editar a
