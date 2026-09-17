@@ -28,3 +28,9 @@ secrets.json
 # Arquivos grandes (>100 MB) versionados via Git LFS:
 #   data/complexity.csv, metrics.db  -> ver .gitattributes
 
+
+# Snapshots do corpus antigo (NSA) — o conteúdo já está preservado no
+# commit b37ad22; estas cópias locais existem só para consulta offline.
+data_nsa/
+reports_nsa/
+repos_nsa/

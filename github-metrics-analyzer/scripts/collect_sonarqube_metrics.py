@@ -70,16 +70,29 @@ _SCANNER = find_external_tool(
 )
 
 
-def _api_get(path: str, params: dict) -> dict | None:
-    """GET the SonarQube Web API with token auth (token as username)."""
-    try:
-        resp = requests.get(f"{SONAR_HOST}{path}", params=params,
-                            auth=(SONAR_TOKEN, ""), timeout=60)
-        if resp.status_code == 200:
-            return resp.json()
-        log.warning("API %s -> %s: %s", path, resp.status_code, resp.text[:200])
-    except requests.RequestException as exc:
-        log.warning("API request failed (%s): %s", path, exc)
+def _api_get(path: str, params: dict, retries: int = 4) -> dict | None:
+    """GET the SonarQube Web API with token auth (token as username).
+
+    Retries on timeout/connection errors with exponential backoff. A
+    component_tree page for a large project (nacos: 5k+ files) can take well
+    over a minute to build server-side, and a single dropped page used to be
+    indistinguishable from "no more data" for the caller — silently truncating
+    the repo's measures.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            resp = requests.get(f"{SONAR_HOST}{path}", params=params,
+                                auth=(SONAR_TOKEN, ""), timeout=180)
+            if resp.status_code == 200:
+                return resp.json()
+            log.warning("API %s -> %s: %s", path, resp.status_code, resp.text[:200])
+            return None
+        except requests.RequestException as exc:
+            wait = min(2 ** attempt, 30)
+            log.warning("API request failed (%s), attempt %d/%d, retrying in %ds: %s",
+                        path, attempt, retries, wait, exc)
+            time.sleep(wait)
+    log.error("API %s failed after %d attempts", path, retries)
     return None
 
 
@@ -149,6 +162,10 @@ def _fetch_file_measures(repo_name: str, project_key: str) -> list[dict]:
             "p": page,
         })
         if data is None:
+            # A failed page is NOT end-of-data: report the gap instead of
+            # returning a silently truncated set of measures.
+            log.error("  page %d of %s failed; measures are INCOMPLETE "
+                      "(%d rows collected so far)", page, repo_name, len(rows))
             break
         components = data.get("components", [])
         for comp in components:

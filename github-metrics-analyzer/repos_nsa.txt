@@ -1,0 +1,12 @@
+# NSA (NationalSecurityAgency) Java repositories
+
+NationalSecurityAgency/ghidra
+NationalSecurityAgency/emissary
+NationalSecurityAgency/timely
+NationalSecurityAgency/datawave
+NationalSecurityAgency/fractalrabbit
+NationalSecurityAgency/lemongrenade
+NationalSecurityAgency/datawave-query-service
+NationalSecurityAgency/datawave-audit-service
+NationalSecurityAgency/datawave-authorization-service
+NationalSecurityAgency/rank-based-linkage

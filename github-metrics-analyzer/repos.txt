@@ -1,12 +1,14 @@
-# NSA (NationalSecurityAgency) Java repositories
+# Corpus 2 — 10 repositórios Java OSS, uma organização por repositório.
+# Substitui o corpus NSA (4/10 repos do ecossistema DataWave = variável
+# de confusão). Critérios em CRITERIOS_SELECAO_REPOSITORIOS.md.
 
-NationalSecurityAgency/ghidra
-NationalSecurityAgency/emissary
-NationalSecurityAgency/timely
-NationalSecurityAgency/datawave
-NationalSecurityAgency/fractalrabbit
-NationalSecurityAgency/lemongrenade
-NationalSecurityAgency/datawave-query-service
-NationalSecurityAgency/datawave-audit-service
-NationalSecurityAgency/datawave-authorization-service
-NationalSecurityAgency/rank-based-linkage
+netty/netty
+apache/shiro
+alibaba/nacos
+apache/rocketmq
+apache/zookeeper
+apache/dubbo
+jenkinsci/jenkins
+apache/httpcomponents-client
+apache/commons-compress
+thingsboard/thingsboard
