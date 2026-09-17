@@ -1,0 +1,11 @@
+repository,deps_declared,deps_queryable,vulns_direct,vulns_critical,vulns_high,vulns_medium,vulns_low,avg_cvss
+alibaba/nacos,175,18,6,0,0,0,6,0.0
+apache/commons-compress,22,10,0,0,0,0,0,0.0
+apache/dubbo,334,13,0,0,0,0,0,0.0
+apache/httpcomponents-client,42,1,0,0,0,0,0,0.0
+apache/rocketmq,108,9,0,0,0,0,0,0.0
+apache/shiro,155,32,0,0,0,0,0,0.0
+apache/zookeeper,71,8,0,0,0,0,0,0.0
+jenkinsci/jenkins,144,71,0,0,0,0,0,0.0
+netty/netty,210,47,0,0,0,0,0,0.0
+thingsboard/thingsboard,262,2,1,0,0,0,1,0.0

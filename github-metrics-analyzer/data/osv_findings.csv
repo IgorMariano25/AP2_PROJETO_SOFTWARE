@@ -1,0 +1,8 @@
+repository,package_name,version,vuln_id,severity_score,severity_label,title
+alibaba/nacos,ch.qos.logback:logback-core,1.2.13,GHSA-25qh-j22f-pwp8,0.0,LOW,
+alibaba/nacos,ch.qos.logback:logback-core,1.2.13,GHSA-6v67-2wr5-gvf4,0.0,LOW,
+alibaba/nacos,ch.qos.logback:logback-core,1.2.13,GHSA-jhq6-gfmj-v8fx,0.0,LOW,
+alibaba/nacos,ch.qos.logback:logback-core,1.2.13,GHSA-p47f-322f-whfh,0.0,LOW,
+alibaba/nacos,ch.qos.logback:logback-core,1.2.13,GHSA-pr98-23f8-jwxv,0.0,LOW,
+alibaba/nacos,ch.qos.logback:logback-core,1.2.13,GHSA-qqpg-mvqg-649v,0.0,LOW,
+thingsboard/thingsboard,org.snmp4j:snmp4j-agent,3.3.6,GHSA-7h7j-7vwp-cwfg,0.0,LOW,

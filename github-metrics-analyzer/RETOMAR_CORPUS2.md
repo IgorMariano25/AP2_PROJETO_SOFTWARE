@@ -1,8 +1,7 @@
 # Como retomar a execução do Corpus 2
 
-Estado em **2026-09-16**, ao fim da sessão em que o corpus foi trocado.
-O pipeline foi interrompido de propósito na fase `semgrep`, para ser
-retomado em outro dia.
+Estado em **2026-09-17**. O pipeline está sendo executado por etapas, em
+dias diferentes, de propósito.
 
 ---
 
@@ -14,10 +13,38 @@ retomado em outro dia.
 | `loc` | `loc.csv` | completa — **com `cloc` de verdade** pela 1ª vez |
 | `complexity` | `complexity.csv` — 212.850 métodos | completa |
 | `sonarqube` | `sonarqube.csv` — 32.671 linhas (25.567 `.java`) | completa e corrigida |
+| `semgrep` | `semgrep_findings.csv` — **1.230** achados, 10/10 repos | completa (37 min) |
+| `codeql` | `codeql_findings.csv` — **1.875** achados em 617 arquivos | completa (2h26min) |
+| `ck` | `ck_metrics.csv` — **24.694** arquivos, 10/10 repos (91–100%) | completa (ver §7.2) |
+| `osv` | `osv_findings.csv` — 7 CVEs; `osv_summary.csv` — 10 repos | completa (18 s) |
+| `secrets` | `secrets_findings.csv` — **3.803** segredos únicos | completa (13 min) |
 
-## 2. O que falta
+Comparação com o corpus NSA: Semgrep 1.230 vs 575; CodeQL 1.875 vs 1.045. O
+corpus novo tem cerca do dobro de achados, que era a expectativa ao escolher
+repositórios com superfície de segurança mais rica.
 
-`semgrep` → `codeql` → `pydriller` → `ck` → `osv` → `secrets` → `dataset` → `ml` → `report`
+## 2. O que falta — plano acordado
+
+~~1. **2026-09-17:** `ck`, `osv`, `secrets`.~~ **concluído**
+
+2. **Próximo passo:** `pydriller` sozinho — foi interrompido de propósito em
+   2026-09-17 e **não gravou** o `pydriller_metrics.csv`.
+3. **Depois que o PyDriller terminar:** `dataset` → `ml` → `report`.
+
+```powershell
+# amanhã, passo 2
+.\.venv\Scripts\python.exe scripts\run_all.py --only pydriller
+# depois, passo 3
+.\.venv\Scripts\python.exe scripts\run_all.py --only dataset,ml,report
+```
+
+> **Não rode `dataset` antes do PyDriller.** Sem o `pydriller_metrics.csv`, o
+> dataset sai sem a dimensão de **processo** (`commits`, `distinct_authors`,
+> `lines_added`, `lines_removed`, `churn`, `file_age_days`,
+> `days_since_change`) — uma das três famílias de features do estudo, ao lado
+> das estruturais (SonarQube) e das OO (CK). O pipeline degrada graciosamente
+> e não quebra; ele apenas produz um modelo cego para essa dimensão, e o
+> `feature_importance_rf.png` e o SHAP sairiam incompletos.
 
 `data/` contém **apenas dados do Corpus 2**. Os 9 CSVs dessas fases, que ainda
 tinham os dados da NSA, foram movidos para `data_nsa_stale/` — não apagados.
@@ -90,7 +117,8 @@ Por etapas, se preferir acompanhar cada uma:
 ```
 
 Tempos observados nas fases já rodadas, como referência de ordem de grandeza:
-`loc` 3 min, `complexity` 2 min, `sonarqube` 44 min.
+`loc` 3 min, `complexity` 2 min, `sonarqube` 44 min, `semgrep` 37 min,
+`codeql` **2h26min** (de longe a mais cara — cria um banco por repositório).
 
 ---
 
@@ -152,7 +180,9 @@ estudo separado.
 
 ---
 
-## 7. Bug corrigido nesta sessão
+## 7. Bugs corrigidos
+
+### 7.1 Truncamento silencioso no coletor SonarQube
 
 `scripts/collect_sonarqube_metrics.py` — a paginação do `component_tree`
 tratava uma página que falhou como fim dos dados, truncando as medidas em
@@ -166,3 +196,42 @@ nível de erro em vez de encerrar silenciosamente.
 
 Após a correção, os 10 repositórios batem exatamente com a contagem de `.java`
 em disco.
+
+### 7.2 CK produzindo zero linhas para um repositório inteiro
+
+O CK 0.7.0 parseia o repositório todo num único lote de `ASTParser`, então
+**um** arquivo irresolvível aborta a execução inteira com um
+`NullPointerException` do JDT (`TypeBinding.kind() ... receiverType is null`) e
+o repositório sai com zero registros.
+
+No Corpus 2 isso atingiu o `thingsboard/thingsboard`: 4.780 arquivos `.java` e
+**0 linhas** no `ck_metrics.csv`, com o log registrando apenas
+`CK non-zero exit` seguido de `0 file records`. O gatilho é uma *switch
+expression* (Java 14+) que o JDT embutido não consegue resolver. O mesmo bug
+já havia atingido o `ghidra` no Corpus 1.
+
+**Correção:** `scripts/collect_ck_partitioned.py`, que generaliza o
+`collect_ck_ghidra.py` (fixo no ghidra) para qualquer repositório:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\collect_ck_partitioned.py --repo thingsboard/thingsboard
+```
+
+Roda o CK uma vez por raiz de módulo (`**/src/main/java`, `**/src/test/java`),
+de modo que uma falha perde só aquele módulo. É retomável (parciais em
+`data/partial/ck_<repo>/`) e substitui as linhas daquele repositório no
+`ck_metrics.csv`.
+
+**Sem mudança metodológica:** mesma ferramenta, mesmas métricas, mesma
+agregação classe→arquivo do `collect_ck_metrics.py`. Só o particionamento do
+lote de parsing muda. Raízes que falhem ficam registradas como ausentes,
+nunca fabricadas como zero.
+
+Resultado no thingsboard: 63 raízes, **0 falharam**, 4.457 arquivos (93%) —
+dentro da faixa dos outros 9 repositórios (91–100%). A lacuna residual em todos
+eles são arquivos sem classe parseável (`package-info.java`, interfaces vazias,
+anotações), comportamento normal do CK.
+
+> Para comparação: no Corpus 1 o `ck_metrics.csv` tinha 5.530 linhas para
+> 31.622 arquivos (17%), porque o ghidra dominava o corpus e travava do mesmo
+> jeito. No Corpus 2 são 24.694 para 25.567 (97%).
