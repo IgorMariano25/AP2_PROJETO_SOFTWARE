@@ -35,3 +35,8 @@ data_nsa/
 reports_nsa/
 repos_nsa/
 data_nsa_stale/
+
+# Rede de segurança do re-run limpo de 2026-09-17: resultados verificados da
+# 1ª passada do Corpus 2, guardados antes de zerar data/ (commit fd9c153).
+data_corpus2_run1/
+reports_corpus2_run1/

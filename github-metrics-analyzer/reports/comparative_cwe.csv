@@ -1,28 +1,38 @@
 CWE,achados,sub_característica_25010
-CWE-470,118,Integridade
-CWE-319,104,Confidencialidade
-CWE-89,99,Integridade
-CWE-353,67,Outras/Não classificada
-CWE-1357,50,Outras/Não classificada
-CWE-78,43,Integridade
-CWE-269,19,Outras/Não classificada
-CWE-732,18,Outras/Não classificada
-CWE-20,18,Outras/Não classificada
-CWE-95,17,Outras/Não classificada
-CWE-502,15,Integridade
-CWE-1333,9,Outras/Não classificada
-CWE-250,8,Outras/Não classificada
-CWE-295,7,Autenticidade
-CWE-798,4,Autenticidade
+CWE-353,379,Outras/Não classificada
+CWE-1357,358,Outras/Não classificada
+CWE-732,252,Outras/Não classificada
+CWE-319,117,Confidencialidade
+CWE-1333,83,Outras/Não classificada
+CWE-470,81,Integridade
+CWE-79,45,Integridade
+CWE-134,29,Outras/Não classificada
+CWE-89,26,Integridade
+CWE-915,25,Outras/Não classificada
+CWE-328,20,Confidencialidade
+CWE-829,20,Outras/Não classificada
+CWE-352,16,Outras/Não classificada
+CWE-78,15,Integridade
+CWE-326,14,Confidencialidade
+CWE-284,14,Outras/Não classificada
+CWE-345,12,Outras/Não classificada
+CWE-330,12,Outras/Não classificada
+CWE-798,9,Autenticidade
+CWE-116,8,Outras/Não classificada
+CWE-614,7,Confidencialidade
+CWE-676,7,Outras/Não classificada
+CWE-295,6,Autenticidade
+CWE-1004,6,Confidencialidade
+CWE-327,5,Confidencialidade
+CWE-22,4,Integridade
+CWE-502,3,Integridade
 CWE-611,3,Integridade
-CWE-829,3,Outras/Não classificada
-CWE-1004,3,Confidencialidade
-CWE-614,3,Confidencialidade
-CWE-352,3,Outras/Não classificada
-CWE-328,3,Confidencialidade
-CWE-326,3,Confidencialidade
-CWE-96,2,Outras/Não classificada
-CWE-330,2,Outras/Não classificada
-CWE-667,2,Outras/Não classificada
+CWE-95,2,Outras/Não classificada
+CWE-321,2,Outras/Não classificada
+CWE-94,2,Integridade
 CWE-704,1,Outras/Não classificada
-CWE-327,1,Confidencialidade
+CWE-601,1,Outras/Não classificada
+CWE-150,1,Outras/Não classificada
+CWE-200,1,Confidencialidade
+CWE-939,1,Outras/Não classificada
+CWE-96,1,Outras/Não classificada

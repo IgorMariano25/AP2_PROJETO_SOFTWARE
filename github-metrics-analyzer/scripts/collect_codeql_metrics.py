@@ -31,6 +31,7 @@ import os
 import shutil
 import stat
 import subprocess
+import time
 from pathlib import Path
 
 from common import (DATA_DIR, TMP_DIR, find_external_tool, folder_to_repo,
@@ -72,6 +73,22 @@ def _force_rmtree(path: Path) -> None:
         shutil.rmtree(path, onexc=_on_error)  # type: ignore[call-arg]
     except TypeError:
         shutil.rmtree(path, onerror=lambda f, p, e: _on_error(f, p, e))
+
+    # _on_error swallows OSError, so rmtree can leave the tree partially
+    # deleted WITHOUT raising. An orphan `db-java` then makes the next
+    # `database create --overwrite` fail for every repo ("does not appear to be
+    # a CodeQL database or database cluster") and the whole phase silently
+    # yields zero findings. Verify, and if the path survived, move it aside so
+    # `database create` still gets a clean target.
+    if path.exists():
+        stale = path.with_name(f"{path.name}.stale-{int(time.time())}")
+        try:
+            path.rename(stale)
+            log.warning("Could not delete %s; moved to %s (delete it manually)",
+                        path.name, stale.name)
+        except OSError as exc:
+            log.error("Could not delete OR move %s (%s); CodeQL will fail for "
+                      "this repo", path, exc)
 
 
 def _run(cmd: list[str], timeout: int) -> subprocess.CompletedProcess | None:
