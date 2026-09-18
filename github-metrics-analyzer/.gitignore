@@ -40,3 +40,10 @@ data_nsa_stale/
 # 1ª passada do Corpus 2, guardados antes de zerar data/ (commit fd9c153).
 data_corpus2_run1/
 reports_corpus2_run1/
+
+# Logs de execução do pipeline (~13 MB). São artefatos reproduzíveis: cada
+# execução os regrava, e os números que importam já estão nos CSVs de data/
+# e reports/. O RUN_LOG.md é gerado por collect_native_resumable.py e foi
+# removido do versionamento no commit 269f888.
+*.log
+RUN_LOG.md
